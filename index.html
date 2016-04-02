@@ -15,6 +15,27 @@
 <body>
     <canvas id="game"></canvas>
     <script>
+
+        var level1 = [
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["p", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+        ];
+
         function Player(game, initPosX, initPosY) {
             this.game = game;
             this.posX = initPosX;
@@ -24,7 +45,7 @@
         Player.prototype.draw = function() {
             var ctx = this.game.ctx;
             ctx.beginPath();
-            ctx.rect(this.posX, this.posY, 16, 16);
+            ctx.rect(this.posX * 16, this.posY * 16, 16, 16);
             ctx.fillStyle = '#F00';
             ctx.fill();
             ctx.closePath();
@@ -33,20 +54,22 @@
         Player.prototype.update = function() {
             var self = this;
 
-            if(this.game.rightPressed && this.posX + 16 < this.game.ctx.canvas.width) {
-                this.posX = this.posX + 16;
+            var level = this.game.level;
+
+            if(this.game.rightPressed && this.posX + 1 < level[this.posY].length) {
+                this.posX++;
             }
 
-            if(this.game.leftPressed && this.posX - 16 >= 0) {
-                this.posX = this.posX - 16;
+            if(this.game.leftPressed && this.posX - 1 >= 0) {
+                this.posX--;
             }
 
-            if(this.game.upPressed && this.posY - 16 >= 0) {
-                this.posY = this.posY - 16;
+            if(this.game.downPressed && this.posY + 1 < level.length) {
+                this.posY++;
             }
 
-            if(this.game.downPressed && this.posY + 16 < this.game.ctx.canvas.height) {
-                this.posY = this.posY + 16;
+            if(this.game.upPressed && this.posY - 1 >= 0) {
+                this.posY--;
             }
         }
 
@@ -58,7 +81,7 @@
 
         Block.prototype.draw = function() {
             this.game.ctx.beginPath();
-            this.game.ctx.rect(this.posX, this.posY, 16, 16);
+            this.game.ctx.rect(this.posX * 16, this.posY * 16, 16, 16);
             this.game.ctx.fillStyle = '#CCC';
             this.game.ctx.fill();
             this.game.ctx.closePath();
@@ -92,6 +115,23 @@
             this.downPressed = false;
         };
 
+        Game.prototype.loadLevel = function(level) {
+            var self = this;
+            this.level = level;
+
+            level.forEach(function(row, rowIdx) {
+                row.forEach(function(field, fieldIdx) {
+                    if(field === 'b') {
+                        self.addGameObject(new Block(self, fieldIdx, rowIdx));
+                    }
+
+                    if(field === 'p') {
+                        self.addGameObject(new Player(game, fieldIdx, rowIdx));
+                    }
+                });
+            });
+        }
+
         Game.prototype.addGameObject = function(obj) {
             this.gameObjects.push(obj);
         };
@@ -101,13 +141,7 @@
         canvas.height = 272;
 
         var game = new Game(canvas.getContext('2d'));
-        var player = new Player(game, 0, 0);
-        var block1 = new Block(game, 80, 192);
-        var block2 = new Block(game, 160, 160);
-
-        game.addGameObject(player);
-        game.addGameObject(block1);
-        game.addGameObject(block2);
+        game.loadLevel(level1);
 
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
