@@ -1,0 +1,136 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+    <style>
+        * { margin: 0; padding: 0; }
+        canvas { 
+            background: cyan;
+            width: 304px;
+            height: 272px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game"></canvas>
+    <script>
+        function Player(game, initPosX, initPosY) {
+            this.game = game;
+            this.posX = initPosX;
+            this.posY = initPosY;
+        }
+
+        Player.prototype.draw = function() {
+            var ctx = this.game.ctx;
+            ctx.beginPath();
+            ctx.rect(this.posX, this.posY, 16, 16);
+            ctx.fillStyle = '#F00';
+            ctx.fill();
+            ctx.closePath();
+        };
+
+        Player.prototype.update = function() {
+            var self = this;
+
+            if(this.game.rightPressed && this.posX + 16 < this.game.ctx.canvas.width) {
+                this.posX = this.posX + 16;
+            }
+
+            if(this.game.leftPressed && this.posX - 16 >= 0) {
+                this.posX = this.posX - 16;
+            }
+
+            if(this.game.upPressed && this.posY - 16 >= 0) {
+                this.posY = this.posY - 16;
+            }
+
+            if(this.game.downPressed && this.posY + 16 < this.game.ctx.canvas.height) {
+                this.posY = this.posY + 16;
+            }
+        }
+
+        function Block(game, posX, posY) {
+            this.game = game;
+            this.posX = posX;
+            this.posY = posY;
+        }
+
+        Block.prototype.draw = function() {
+            this.game.ctx.beginPath();
+            this.game.ctx.rect(this.posX, this.posY, 16, 16);
+            this.game.ctx.fillStyle = '#CCC';
+            this.game.ctx.fill();
+            this.game.ctx.closePath();
+        };
+
+        Block.prototype.update = function() {};
+
+        function Game(ctx) {
+            this.ctx = ctx;
+            this.gameObjects = [];
+        }
+
+        Game.prototype.draw = function() {
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+            this.gameObjects.forEach(function(gameObject) {
+                gameObject.draw();
+            });
+        };
+
+        Game.prototype.update = function() {
+            this.gameObjects.forEach(function(gameObject) {
+                gameObject.update();
+            });
+            this.resetInputs();
+        };
+
+        Game.prototype.resetInputs = function() {
+            this.leftPressed = false;
+            this.upPressed = false;
+            this.rightPressed = false;
+            this.downPressed = false;
+        };
+
+        Game.prototype.addGameObject = function(obj) {
+            this.gameObjects.push(obj);
+        };
+
+        var canvas = document.getElementById('game');
+        canvas.width = 304;
+        canvas.height = 272;
+
+        var game = new Game(canvas.getContext('2d'));
+        var player = new Player(game, 0, 0);
+        var block1 = new Block(game, 80, 192);
+        var block2 = new Block(game, 160, 160);
+
+        game.addGameObject(player);
+        game.addGameObject(block1);
+        game.addGameObject(block2);
+
+        addEventListener('keydown', function(e) {
+            switch (e.keyCode) {
+                case 37:
+                    game.leftPressed = true;
+                    break;
+                case 38:
+                    game.upPressed = true;
+                    break;
+                case 39:
+                    game.rightPressed = true;
+                    break;
+                case 40:
+                    game.downPressed = true;
+                    break;
+            }
+
+            game.update();
+            game.draw();
+        });
+
+        game.update();
+        game.draw();
+    </script>
+</body>
+</html>
