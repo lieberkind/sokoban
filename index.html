@@ -42,9 +42,16 @@
                 x: initPosX,
                 y: initPosY
             }
-            // this.posX = initPosX;
-            // this.posY = initPosY;
         }
+
+        Player.prototype.canMoveTo = function(dPosition) {
+            var level = this.game.level;
+
+            return dPosition.x < level[this.position.y].length &&
+                dPosition.x >= 0 &&
+                dPosition.y < level.length &&
+                dPosition.y >= 0;
+        };
 
         Player.prototype.draw = function() {
             var ctx = this.game.ctx;
@@ -58,20 +65,22 @@
         Player.prototype.update = function() {
             var level = this.game.level;
 
-            if(this.game.rightPressed && this.position.x + 1 < level[this.position.y].length) {
-                this.position.x++;
+            var dPosition;
+
+            if(this.game.rightPressed) {
+                dPosition = { x: this.position.x + 1, y: this.position.y};
+            } else if(this.game.leftPressed) {
+                dPosition = { x: this.position.x - 1, y: this.position.y};
+            } else if(this.game.downPressed) {
+                dPosition = { x: this.position.x, y: this.position.y + 1};
+            } else if(this.game.upPressed) {
+                dPosition = { x: this.position.x, y: this.position.y - 1};
+            } else {
+                dPosition = { x: this.position.x, y: this.position.y };
             }
 
-            if(this.game.leftPressed && this.position.x - 1 >= 0) {
-                this.position.x--;
-            }
-
-            if(this.game.downPressed && this.position.y + 1 < level.length) {
-                this.position.y++;
-            }
-
-            if(this.game.upPressed && this.position.y - 1 >= 0) {
-                this.position.y--;
+            if(this.canMoveTo(dPosition)) {
+                this.position = dPosition;
             }
         }
 
