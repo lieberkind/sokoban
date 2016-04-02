@@ -38,50 +38,54 @@
 
         function Player(game, initPosX, initPosY) {
             this.game = game;
-            this.posX = initPosX;
-            this.posY = initPosY;
+            this.position = {
+                x: initPosX,
+                y: initPosY
+            }
+            // this.posX = initPosX;
+            // this.posY = initPosY;
         }
 
         Player.prototype.draw = function() {
             var ctx = this.game.ctx;
             ctx.beginPath();
-            ctx.rect(this.posX * 16, this.posY * 16, 16, 16);
+            ctx.rect(this.position.x * 16, this.position.y * 16, 16, 16);
             ctx.fillStyle = '#F00';
             ctx.fill();
             ctx.closePath();
         };
 
         Player.prototype.update = function() {
-            var self = this;
-
             var level = this.game.level;
 
-            if(this.game.rightPressed && this.posX + 1 < level[this.posY].length) {
-                this.posX++;
+            if(this.game.rightPressed && this.position.x + 1 < level[this.position.y].length) {
+                this.position.x++;
             }
 
-            if(this.game.leftPressed && this.posX - 1 >= 0) {
-                this.posX--;
+            if(this.game.leftPressed && this.position.x - 1 >= 0) {
+                this.position.x--;
             }
 
-            if(this.game.downPressed && this.posY + 1 < level.length) {
-                this.posY++;
+            if(this.game.downPressed && this.position.y + 1 < level.length) {
+                this.position.y++;
             }
 
-            if(this.game.upPressed && this.posY - 1 >= 0) {
-                this.posY--;
+            if(this.game.upPressed && this.position.y - 1 >= 0) {
+                this.position.y--;
             }
         }
 
         function Block(game, posX, posY) {
             this.game = game;
-            this.posX = posX;
-            this.posY = posY;
+            this.position = {
+                x: posX,
+                y: posY
+            };
         }
 
         Block.prototype.draw = function() {
             this.game.ctx.beginPath();
-            this.game.ctx.rect(this.posX * 16, this.posY * 16, 16, 16);
+            this.game.ctx.rect(this.position.x * 16, this.position.y * 16, 16, 16);
             this.game.ctx.fillStyle = '#CCC';
             this.game.ctx.fill();
             this.game.ctx.closePath();
