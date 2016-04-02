@@ -50,7 +50,8 @@
             return dPosition.x < level[this.position.y].length &&
                 dPosition.x >= 0 &&
                 dPosition.y < level.length &&
-                dPosition.y >= 0;
+                dPosition.y >= 0 &&
+                level[dPosition.y][dPosition.x] !== 'b';
         };
 
         Player.prototype.draw = function() {
