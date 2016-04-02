@@ -18,7 +18,7 @@
 
         var level1 = [
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-            ["p", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
@@ -103,6 +103,24 @@
 
         Block.prototype.update = function() {};
 
+        function Crate(game, posX, posY) {
+            this.game = game;
+            this.position = {
+                x: posX,
+                y: posY
+            };
+        };
+
+        Crate.prototype.update = function() {};
+
+        Crate.prototype.draw = function() {
+            this.game.ctx.beginPath();
+            this.game.ctx.rect(this.position.x * 16, this.position.y * 16, 16, 16);
+            this.game.ctx.fillStyle = '#FF0';
+            this.game.ctx.fill();
+            this.game.ctx.closePath();
+        };
+
         function Game(ctx) {
             this.ctx = ctx;
             this.gameObjects = [];
@@ -156,6 +174,9 @@
 
         var game = new Game(canvas.getContext('2d'));
         game.loadLevel(level1);
+        game.addGameObject(new Crate(game, 4, 7));
+        game.addGameObject(new Crate(game, 7, 4));
+        game.addGameObject(new Player(game, 0, 0));
 
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
