@@ -98,6 +98,8 @@
         };
 
         Player.prototype.move = function(direction) {
+            var self = this;
+
             switch (direction) {
                 case DIRECTIONS.up:
                     this.position.y--;
@@ -113,6 +115,16 @@
                     break;
                 default: break;
             }
+
+            var crates = this.game.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === Crate;
+            });
+
+            crates.forEach(function(crate) {
+                if(crate.position.x === self.position.x && crate.position.y === self.position.y) {
+                    crate.move(direction);
+                }
+            });
         };
 
         Player.prototype.draw = function() {
@@ -160,8 +172,68 @@
             };
         };
 
+        Crate.prototype.isWithinLevel = function(dPosition) {
+            var level = this.game.level;
+
+            return dPosition.x < level[this.position.y].length &&
+                dPosition.x >= 0 &&
+                dPosition.y < level.length &&
+                dPosition.y >= 0 &&
+                level[dPosition.y][dPosition.x] !== 'b';
+        }
+
         Crate.prototype.canMove = function(direction) {
-            return false;
+            var dPosition;
+
+            switch (direction) {
+                case DIRECTIONS.up:
+                    dPosition = { x: this.position.x, y: this.position.y - 1};
+                    break;
+                case DIRECTIONS.right:
+                    dPosition = { x: this.position.x + 1, y: this.position.y};
+                    break;
+                case DIRECTIONS.down:
+                    dPosition = { x: this.position.x, y: this.position.y + 1};
+                    break;
+                case DIRECTIONS.left:
+                    dPosition = { x: this.position.x - 1, y: this.position.y};
+                    break;
+                default:
+                    dPosition = { x: this.position.x, y: this.position.y };
+                    break;
+            }
+
+            var crates = this.game.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === Crate;
+            });
+
+            var crateIsBlocking = false;
+
+            crates.forEach(function(crate) {
+                if(crate.position.x === dPosition.x && crate.position.y === dPosition.y) {
+                    crateIsBlocking = true;
+                }
+            });
+
+            return this.isWithinLevel(dPosition) && !crateIsBlocking;
+        };
+
+        Crate.prototype.move = function(direction) {
+            switch (direction) {
+                case DIRECTIONS.up:
+                    this.position.y--;
+                    break;
+                case DIRECTIONS.right:
+                    this.position.x++;
+                    break;
+                case DIRECTIONS.down:
+                    this.position.y++;
+                    break;
+                case DIRECTIONS.left:
+                    this.position.x--;
+                    break;
+                default: break;
+            }
         };
 
         Crate.prototype.update = function() {};
@@ -235,6 +307,8 @@
         game.loadLevel(level1);
         game.addGameObject(new Crate(game, 4, 7));
         game.addGameObject(new Crate(game, 7, 4));
+        game.addGameObject(new Crate(game, 2, 1));
+        game.addGameObject(new Crate(game, 10, 0));
         game.addGameObject(new Player(game, 0, 0));
 
         addEventListener('keydown', function(e) {
