@@ -53,6 +53,10 @@
             }
         }
 
+        function isSamePosition(pos1, pos2) {
+            return pos1.x === pos2.x && pos1.y === pos2.y;
+        }
+
         function Level(grid) {
             this.grid = grid;
         }
@@ -73,10 +77,6 @@
             }
         }
 
-        Player.prototype.isWithinLevel = function(dPosition) {
-            return this.game.getCurrentLevel().isWithinMaze(dPosition);
-        };
-
         Player.prototype.canMove = function(direction) {
             var dPosition = getNextPosition(this.position, direction);
 
@@ -84,15 +84,14 @@
                 return gameObject.constructor === Crate;
             });
 
-            var canMoveCrate = true;
-
-            crates.forEach(function(crate) {
-                if(crate.position.x === dPosition.x && crate.position.y === dPosition.y) {
-                    canMoveCrate = canMoveCrate && crate.canMove(direction);
+            var canMoveCrate = crates.reduce(function(canMoveCrate, crate) {
+                if(isSamePosition(crate.position, dPosition)) {
+                    return canMoveCrate && crate.canMove(direction);
                 }
-            });
+                return canMoveCrate;
+            }, true);
 
-            return this.isWithinLevel(dPosition) && canMoveCrate;
+            return this.game.getCurrentLevel().isWithinMaze(dPosition) && canMoveCrate;
         };
 
         Player.prototype.move = function(direction) {
@@ -105,7 +104,7 @@
             });
 
             crates.forEach(function(crate) {
-                if(crate.position.x === self.position.x && crate.position.y === self.position.y) {
+                if(isSamePosition(self.position, crate.position)) {
                     crate.move(direction);
                 }
             });
@@ -156,10 +155,6 @@
             };
         };
 
-        Crate.prototype.isWithinLevel = function(dPosition) {
-            return this.game.getCurrentLevel().isWithinMaze(dPosition);
-        }
-
         Crate.prototype.canMove = function(direction) {
             var dPosition = getNextPosition(this.position, direction);
 
@@ -175,7 +170,7 @@
                 }
             });
 
-            return this.isWithinLevel(dPosition) && !crateIsBlocking;
+            return this.game.getCurrentLevel().isWithinMaze(dPosition) && !crateIsBlocking;
         };
 
         Crate.prototype.move = function(direction) {
@@ -262,7 +257,6 @@
         game.addGameObject(new Crate(game, 5, 9));
         game.addGameObject(new Crate(game, 2, 9));
 
-        // game.addGameObject(new Crate(game, 10, 0));
         game.addGameObject(new Player(game, 11, 10));
 
         addEventListener('keydown', function(e) {
