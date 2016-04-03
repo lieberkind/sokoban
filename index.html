@@ -15,12 +15,17 @@
 <body>
     <canvas id="game"></canvas>
     <script>
+        var DIRECTIONS = {
+            up: 'up',
+            right: 'right',
+            down: 'down',
+            left: 'left',
+            none: 'none'
+        };
 
         var level1 = [
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-            ["s", "s", "s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
@@ -29,7 +34,9 @@
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-            ["s", "s", "s", "s", "s", "s", "s", "s", "b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+            ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
             ["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
@@ -44,7 +51,7 @@
             }
         }
 
-        Player.prototype.canMoveTo = function(dPosition) {
+        Player.prototype.isWithinLevel = function(dPosition) {
             var level = this.game.level;
 
             return dPosition.x < level[this.position.y].length &&
@@ -52,6 +59,60 @@
                 dPosition.y < level.length &&
                 dPosition.y >= 0 &&
                 level[dPosition.y][dPosition.x] !== 'b';
+        };
+
+        Player.prototype.canMove = function(direction) {
+            var dPosition;
+
+            switch (direction) {
+                case DIRECTIONS.up:
+                    dPosition = { x: this.position.x, y: this.position.y - 1};
+                    break;
+                case DIRECTIONS.right:
+                    dPosition = { x: this.position.x + 1, y: this.position.y};
+                    break;
+                case DIRECTIONS.down:
+                    dPosition = { x: this.position.x, y: this.position.y + 1};
+                    break;
+                case DIRECTIONS.left:
+                    dPosition = { x: this.position.x - 1, y: this.position.y};
+                    break;
+                default:
+                    dPosition = { x: this.position.x, y: this.position.y };
+                    break;
+            }
+
+            var crates = this.game.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === Crate;
+            });
+
+            var canMoveCrate = true;
+
+            crates.forEach(function(crate) {
+                if(crate.position.x === dPosition.x && crate.position.y === dPosition.y) {
+                    canMoveCrate = canMoveCrate && crate.canMove(direction);
+                }
+            });
+
+            return this.isWithinLevel(dPosition) && canMoveCrate;
+        };
+
+        Player.prototype.move = function(direction) {
+            switch (direction) {
+                case DIRECTIONS.up:
+                    this.position.y--;
+                    break;
+                case DIRECTIONS.right:
+                    this.position.x++;
+                    break;
+                case DIRECTIONS.down:
+                    this.position.y++;
+                    break;
+                case DIRECTIONS.left:
+                    this.position.x--;
+                    break;
+                default: break;
+            }
         };
 
         Player.prototype.draw = function() {
@@ -64,25 +125,13 @@
         };
 
         Player.prototype.update = function() {
-            var level = this.game.level;
+            var direction;
 
-            var dPosition;
+            direction = this.game.getPressedDirection();
 
-            if(this.game.rightPressed) {
-                dPosition = { x: this.position.x + 1, y: this.position.y};
-            } else if(this.game.leftPressed) {
-                dPosition = { x: this.position.x - 1, y: this.position.y};
-            } else if(this.game.downPressed) {
-                dPosition = { x: this.position.x, y: this.position.y + 1};
-            } else if(this.game.upPressed) {
-                dPosition = { x: this.position.x, y: this.position.y - 1};
-            } else {
-                dPosition = { x: this.position.x, y: this.position.y };
-            }
-
-            if(this.canMoveTo(dPosition)) {
-                this.position = dPosition;
-            }
+            if(this.canMove(direction)) {
+                this.move(direction);
+            };
         }
 
         function Block(game, posX, posY) {
@@ -111,6 +160,10 @@
             };
         };
 
+        Crate.prototype.canMove = function(direction) {
+            return false;
+        };
+
         Crate.prototype.update = function() {};
 
         Crate.prototype.draw = function() {
@@ -124,6 +177,7 @@
         function Game(ctx) {
             this.ctx = ctx;
             this.gameObjects = [];
+            this.pressedDirection = DIRECTIONS.none;
         }
 
         Game.prototype.draw = function() {
@@ -141,10 +195,15 @@
         };
 
         Game.prototype.resetInputs = function() {
-            this.leftPressed = false;
-            this.upPressed = false;
-            this.rightPressed = false;
-            this.downPressed = false;
+            this.pressedDirection = DIRECTIONS.none;
+        };
+
+        Game.prototype.getPressedDirection = function() {
+            return this.pressedDirection;
+        };
+
+        Game.prototype.setPressedDirection = function(direction) {
+            this.pressedDirection = direction;
         };
 
         Game.prototype.loadLevel = function(level) {
@@ -181,16 +240,19 @@
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
                 case 37:
-                    game.leftPressed = true;
+                    game.setPressedDirection(DIRECTIONS.left);
                     break;
                 case 38:
-                    game.upPressed = true;
+                    game.setPressedDirection(DIRECTIONS.up);
                     break;
                 case 39:
-                    game.rightPressed = true;
+                    game.setPressedDirection(DIRECTIONS.right);
                     break;
                 case 40:
-                    game.downPressed = true;
+                    game.setPressedDirection(DIRECTIONS.down);
+                    break;
+                default:
+                    game.setPressedDirection(DIRECTIONS.none);
                     break;
             }
 
