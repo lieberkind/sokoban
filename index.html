@@ -23,25 +23,36 @@
             none: 'none'
         };
 
-        var level1 = [
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "s", "s", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "s", "s", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "s", "s", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "s", "s", "s", "s", "s", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "s", "b", "s", "b", "b", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "s", "s", "s", "b", "s", "b", "b", "s", "b", "b", "b", "b", "b", "s", "s", "s", "s", "b"],
-            ["b", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "b"],
-            ["b", "b", "b", "b", "b", "s", "b", "b", "b", "s", "b", "s", "b", "b", "s", "s", "s", "s", "b"],
-            ["b", "b", "b", "b", "b", "s", "s", "s", "s", "s", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
-        ];
+        var level1 = {
+            grid: [
+                "###################",
+                "###################",
+                "###################",
+                "#####...###########",
+                "#####...###########",
+                "#####...###########",
+                "###......##########",
+                "###.#.##.##########",
+                "#...#.##.#####..xx#",
+                "#...............xx#",
+                "#####.###.#.##..xx#",
+                "#####.....#########",
+                "###################",
+                "###################",
+                "###################",
+                "###################",
+                "###################",
+            ],
+            crates: [
+                { x: 5, y: 4},
+                { x: 7, y: 5},
+                { x: 7, y: 6},
+                { x: 5, y: 6},
+                { x: 5, y: 9},
+                { x: 2, y: 9},
+            ],
+            player: { x: 11, y: 10 }
+        }
 
         function getNextPosition(currentPosition, direction) {
             switch (direction) {
@@ -57,16 +68,24 @@
             return pos1.x === pos2.x && pos1.y === pos2.y;
         }
 
-        function Level(grid) {
-            this.grid = grid;
+        function Level(level) {
+            this.grid = level.grid.map(function(row) {
+                return row.split("");
+            });
+            this.crates = level.crates;
+            this.player = level.player;
         }
+
+        Level.prototype.isBlock = function(position) {
+            return this.grid[position.y][position.x] === '#';
+        };
 
         Level.prototype.isWithinMaze = function(position) {
             return position.x < this.grid[position.y].length &&
                 position.x >= 0 &&
                 position.y < this.grid.length &&
                 position.y >= 0 &&
-                this.grid[position.y][position.x] !== 'b';
+                !this.isBlock(position);
         };
 
         function Player(game, initPosX, initPosY) {
@@ -225,11 +244,17 @@
 
             level.grid.forEach(function(row, rowIdx) {
                 row.forEach(function(field, fieldIdx) {
-                    if(field === 'b') {
-                        self.addGameObject(new Block(self, fieldIdx, rowIdx));
+                    if(level.isBlock({x: fieldIdx, y: rowIdx})) {
+                        self.addGameObject(new Block(self, fieldIdx, rowIdx));                        
                     }
                 });
             });
+
+            level.crates.forEach(function(cratePosition) {
+                self.addGameObject(new Crate(self, cratePosition.x, cratePosition.y));
+            });
+
+            this.addGameObject(new Player(this, level.player.x, level.player.y));
         }
 
         Game.prototype.getCurrentLevel = function() {
@@ -250,14 +275,6 @@
 
         var game = new Game(canvas.getContext('2d'));
         game.loadLevel(new Level(level1));
-        game.addGameObject(new Crate(game, 5, 4));
-        game.addGameObject(new Crate(game, 7, 5));
-        game.addGameObject(new Crate(game, 7, 6));
-        game.addGameObject(new Crate(game, 5, 6));
-        game.addGameObject(new Crate(game, 5, 9));
-        game.addGameObject(new Crate(game, 2, 9));
-
-        game.addGameObject(new Player(game, 11, 10));
 
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
