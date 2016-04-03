@@ -43,6 +43,28 @@
             ["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
         ];
 
+        function getNextPosition(currentPosition, direction) {
+            switch (direction) {
+                case DIRECTIONS.up: return { x: currentPosition.x, y: currentPosition.y - 1};
+                case DIRECTIONS.right: return { x: currentPosition.x + 1, y: currentPosition.y};
+                case DIRECTIONS.down: return { x: currentPosition.x, y: currentPosition.y + 1};
+                case DIRECTIONS.left: return { x: currentPosition.x - 1, y: currentPosition.y};
+                default: return { x: currentPosition.x, y: currentPosition.y };
+            }
+        }
+
+        function Level(grid) {
+            this.grid = grid;
+        }
+
+        Level.prototype.isWithinMaze = function(position) {
+            return position.x < this.grid[position.y].length &&
+                position.x >= 0 &&
+                position.y < this.grid.length &&
+                position.y >= 0 &&
+                this.grid[position.y][position.x] !== 'b';
+        };
+
         function Player(game, initPosX, initPosY) {
             this.game = game;
             this.position = {
@@ -52,35 +74,11 @@
         }
 
         Player.prototype.isWithinLevel = function(dPosition) {
-            var level = this.game.level;
-
-            return dPosition.x < level[this.position.y].length &&
-                dPosition.x >= 0 &&
-                dPosition.y < level.length &&
-                dPosition.y >= 0 &&
-                level[dPosition.y][dPosition.x] !== 'b';
+            return this.game.getCurrentLevel().isWithinMaze(dPosition);
         };
 
         Player.prototype.canMove = function(direction) {
-            var dPosition;
-
-            switch (direction) {
-                case DIRECTIONS.up:
-                    dPosition = { x: this.position.x, y: this.position.y - 1};
-                    break;
-                case DIRECTIONS.right:
-                    dPosition = { x: this.position.x + 1, y: this.position.y};
-                    break;
-                case DIRECTIONS.down:
-                    dPosition = { x: this.position.x, y: this.position.y + 1};
-                    break;
-                case DIRECTIONS.left:
-                    dPosition = { x: this.position.x - 1, y: this.position.y};
-                    break;
-                default:
-                    dPosition = { x: this.position.x, y: this.position.y };
-                    break;
-            }
+            var dPosition = getNextPosition(this.position, direction);
 
             var crates = this.game.gameObjects.filter(function(gameObject) {
                 return gameObject.constructor === Crate;
@@ -100,21 +98,7 @@
         Player.prototype.move = function(direction) {
             var self = this;
 
-            switch (direction) {
-                case DIRECTIONS.up:
-                    this.position.y--;
-                    break;
-                case DIRECTIONS.right:
-                    this.position.x++;
-                    break;
-                case DIRECTIONS.down:
-                    this.position.y++;
-                    break;
-                case DIRECTIONS.left:
-                    this.position.x--;
-                    break;
-                default: break;
-            }
+            this.position = getNextPosition(this.position, direction);
 
             var crates = this.game.gameObjects.filter(function(gameObject) {
                 return gameObject.constructor === Crate;
@@ -173,35 +157,11 @@
         };
 
         Crate.prototype.isWithinLevel = function(dPosition) {
-            var level = this.game.level;
-
-            return dPosition.x < level[this.position.y].length &&
-                dPosition.x >= 0 &&
-                dPosition.y < level.length &&
-                dPosition.y >= 0 &&
-                level[dPosition.y][dPosition.x] !== 'b';
+            return this.game.getCurrentLevel().isWithinMaze(dPosition);
         }
 
         Crate.prototype.canMove = function(direction) {
-            var dPosition;
-
-            switch (direction) {
-                case DIRECTIONS.up:
-                    dPosition = { x: this.position.x, y: this.position.y - 1};
-                    break;
-                case DIRECTIONS.right:
-                    dPosition = { x: this.position.x + 1, y: this.position.y};
-                    break;
-                case DIRECTIONS.down:
-                    dPosition = { x: this.position.x, y: this.position.y + 1};
-                    break;
-                case DIRECTIONS.left:
-                    dPosition = { x: this.position.x - 1, y: this.position.y};
-                    break;
-                default:
-                    dPosition = { x: this.position.x, y: this.position.y };
-                    break;
-            }
+            var dPosition = getNextPosition(this.position, direction);
 
             var crates = this.game.gameObjects.filter(function(gameObject) {
                 return gameObject.constructor === Crate;
@@ -219,21 +179,7 @@
         };
 
         Crate.prototype.move = function(direction) {
-            switch (direction) {
-                case DIRECTIONS.up:
-                    this.position.y--;
-                    break;
-                case DIRECTIONS.right:
-                    this.position.x++;
-                    break;
-                case DIRECTIONS.down:
-                    this.position.y++;
-                    break;
-                case DIRECTIONS.left:
-                    this.position.x--;
-                    break;
-                default: break;
-            }
+            this.position = getNextPosition(this.position, direction);
         };
 
         Crate.prototype.update = function() {};
@@ -282,18 +228,22 @@
             var self = this;
             this.level = level;
 
-            level.forEach(function(row, rowIdx) {
+            level.grid.forEach(function(row, rowIdx) {
                 row.forEach(function(field, fieldIdx) {
                     if(field === 'b') {
                         self.addGameObject(new Block(self, fieldIdx, rowIdx));
                     }
-
-                    if(field === 'p') {
-                        self.addGameObject(new Player(game, fieldIdx, rowIdx));
-                    }
                 });
             });
         }
+
+        Game.prototype.getCurrentLevel = function() {
+            if(!this.level) {
+                throw new Error('No level loaded.');
+            }
+
+            return this.level;
+        };
 
         Game.prototype.addGameObject = function(obj) {
             this.gameObjects.push(obj);
@@ -304,7 +254,7 @@
         canvas.height = 272;
 
         var game = new Game(canvas.getContext('2d'));
-        game.loadLevel(level1);
+        game.loadLevel(new Level(level1));
         game.addGameObject(new Crate(game, 5, 4));
         game.addGameObject(new Crate(game, 7, 5));
         game.addGameObject(new Crate(game, 7, 6));
