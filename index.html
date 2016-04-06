@@ -103,9 +103,7 @@
         Player.prototype.canMove = function(direction) {
             var dPosition = getNextPosition(this.position, direction);
 
-            var crates = this.game.gameObjects.filter(function(gameObject) {
-                return gameObject.constructor === Crate;
-            });
+            var crates = this.game.getGameObjectsOfType(Crate);
 
             var canMoveCrate = crates.reduce(function(canMoveCrate, crate) {
                 if(isSamePosition(crate.position, dPosition)) {
@@ -122,9 +120,7 @@
 
             this.position = getNextPosition(this.position, direction);
 
-            var crates = this.game.gameObjects.filter(function(gameObject) {
-                return gameObject.constructor === Crate;
-            });
+            var crates = this.game.getGameObjectsOfType(Crate);
 
             crates.forEach(function(crate) {
                 if(isSamePosition(self.position, crate.position)) {
@@ -181,9 +177,7 @@
         Crate.prototype.canMove = function(direction) {
             var dPosition = getNextPosition(this.position, direction);
 
-            var crates = this.game.gameObjects.filter(function(gameObject) {
-                return gameObject.constructor === Crate;
-            });
+            var crates = this.game.getGameObjectsOfType(Crate);
 
             var crateIsBlocking = false;
 
@@ -222,9 +216,7 @@
         GoalField.prototype.update = function() {
             var self = this;
 
-            var crates = this.game.gameObjects.filter(function(gameObject) {
-                return gameObject.constructor === Crate;
-            });
+            var crates = this.game.getGameObjectsOfType(Crate);
 
             this.hasCrate = crates.some(function(crate) {
                 return isSamePosition(self.position, crate.position);
@@ -306,10 +298,14 @@
             this.gameObjects.push(obj);
         };
 
-        Game.prototype.levelWon = function() {
-            var goalFields = this.gameObjects.filter(function(gameObject) {
-                return gameObject.constructor === GoalField;
+        Game.prototype.getGameObjectsOfType = function(type) {
+            return this.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === type;
             });
+        }
+
+        Game.prototype.levelWon = function() {
+            var goalFields = this.getGameObjectsOfType(GoalField);
 
             return goalFields.every(function(goalField) {
                 return goalField.hasCrate;
