@@ -80,6 +80,10 @@
             return this.grid[position.y][position.x] === '#';
         };
 
+        Level.prototype.isGoalField = function(position) {
+            return this.grid[position.y][position.x] === 'x';
+        }
+
         Level.prototype.isWithinMaze = function(position) {
             return position.x < this.grid[position.y].length &&
                 position.x >= 0 &&
@@ -88,11 +92,11 @@
                 !this.isBlock(position);
         };
 
-        function Player(game, initPosX, initPosY) {
+        function Player(game, posX, posY) {
             this.game = game;
             this.position = {
-                x: initPosX,
-                y: initPosY
+                x: posX,
+                y: posY
             }
         }
 
@@ -206,6 +210,35 @@
             this.game.ctx.closePath();
         };
 
+        function GoalField(game, posX, posY) {
+            this.game = game;
+            this.position = {
+                x: posX,
+                y: posY
+            };
+            this.hasCrate = false;
+        }
+
+        GoalField.prototype.update = function() {
+            var self = this;
+
+            var crates = this.game.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === Crate;
+            });
+
+            this.hasCrate = crates.some(function(crate) {
+                return isSamePosition(self.position, crate.position);
+            })
+        }
+
+        GoalField.prototype.draw = function() {
+            this.game.ctx.beginPath();
+            this.game.ctx.rect(this.position.x * 16, this.position.y * 16, 16, 16);
+            this.game.ctx.fillStyle = '#000';
+            this.game.ctx.fill();
+            this.game.ctx.closePath();  
+        };
+
         function Game(ctx) {
             this.ctx = ctx;
             this.gameObjects = [];
@@ -247,6 +280,10 @@
                     if(level.isBlock({x: fieldIdx, y: rowIdx})) {
                         self.addGameObject(new Block(self, fieldIdx, rowIdx));                        
                     }
+
+                    if(level.isGoalField({x: fieldIdx, y: rowIdx})) {
+                        self.addGameObject(new GoalField(self, fieldIdx, rowIdx));                        
+                    }
                 });
             });
 
@@ -267,6 +304,16 @@
 
         Game.prototype.addGameObject = function(obj) {
             this.gameObjects.push(obj);
+        };
+
+        Game.prototype.levelWon = function() {
+            var goalFields = this.gameObjects.filter(function(gameObject) {
+                return gameObject.constructor === GoalField;
+            });
+
+            return goalFields.every(function(goalField) {
+                return goalField.hasCrate;
+            });
         };
 
         var canvas = document.getElementById('game');
@@ -297,6 +344,10 @@
 
             game.update();
             game.draw();
+
+            if(game.levelWon()) {
+                alert('Level won!');
+            }
         });
 
         game.update();
