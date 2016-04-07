@@ -15,6 +15,27 @@
 <body>
     <canvas id="game"></canvas>
     <script>
+        var eventEmitter = (function() {
+            var handlers = {};
+
+            return {
+                emit: function(event, data) {
+                    if(handlers[event]) {
+                        handlers[event].forEach(function(handler) {
+                            handler(data);
+                        });
+                    }
+                },
+                on: function(event, handler) {
+                    if(handler[event]) {
+                        handlers[event].push(handler);
+                    } else {
+                        handlers[event] = [handler];
+                    }
+                }
+            };
+        }());
+
         var DIRECTIONS = {
             up: 'up',
             right: 'right',
@@ -231,10 +252,19 @@
             this.game.ctx.closePath();  
         };
 
-        function Game(ctx) {
+        function Game(ctx, eventEmitter) {
+            var self = this;
+
             this.ctx = ctx;
+            this.eventEmitter = eventEmitter;
             this.gameObjects = [];
             this.pressedDirection = DIRECTIONS.none;
+
+            this.eventEmitter.on('arrowKey.pressed', function(direction) {
+                self.setPressedDirection(direction);
+                self.update();
+                self.draw();
+            });
         }
 
         Game.prototype.draw = function() {
@@ -316,25 +346,25 @@
         canvas.width = 304;
         canvas.height = 272;
 
-        var game = new Game(canvas.getContext('2d'));
+        var game = new Game(canvas.getContext('2d'), eventEmitter);
         game.loadLevel(new Level(level1));
 
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
                 case 37:
-                    game.setPressedDirection(DIRECTIONS.left);
+                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.left);
                     break;
                 case 38:
-                    game.setPressedDirection(DIRECTIONS.up);
+                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.up);
                     break;
                 case 39:
-                    game.setPressedDirection(DIRECTIONS.right);
+                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.right);
                     break;
                 case 40:
-                    game.setPressedDirection(DIRECTIONS.down);
+                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.down);
                     break;
                 default:
-                    game.setPressedDirection(DIRECTIONS.none);
+                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.none);
                     break;
             }
 
