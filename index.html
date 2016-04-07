@@ -279,6 +279,9 @@
                 gameObject.update();
             });
             this.resetInputs();
+            if(this.levelWon()) {
+                this.eventEmitter.emit('level.won', undefined);
+            }
         };
 
         Game.prototype.resetInputs = function() {
@@ -349,6 +352,10 @@
         var game = new Game(canvas.getContext('2d'), eventEmitter);
         game.loadLevel(new Level(level1));
 
+        eventEmitter.on('level.won', function() {
+            alert('Level won!!!11one');
+        });
+
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
                 case 37:
@@ -367,13 +374,8 @@
                     eventEmitter.emit('arrowKey.pressed', DIRECTIONS.none);
                     break;
             }
-
             game.update();
             game.draw();
-
-            if(game.levelWon()) {
-                alert('Level won!');
-            }
         });
 
         game.update();
