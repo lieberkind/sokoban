@@ -13,7 +13,14 @@
     </style>
 </head>
 <body>
-    <canvas id="game"></canvas>
+    <div class="game-container">
+        <canvas id="game"></canvas>
+        <div class="game-info">
+            <div moves class="moves">Moves: 0</div>
+            <div pushes class="pushes">Pushes: 0</div>
+        </div>
+        <div class="game-feedback"></div>
+    </div>
     <script>
         var eventEmitter = (function() {
             var handlers = {};
@@ -148,6 +155,8 @@
                     crate.move(direction);
                 }
             });
+
+            this.game.eventEmitter.emit('player.moved');
         };
 
         Player.prototype.draw = function() {
@@ -213,6 +222,7 @@
 
         Crate.prototype.move = function(direction) {
             this.position = getNextPosition(this.position, direction);
+            this.game.eventEmitter.emit('crate.moved');
         };
 
         Crate.prototype.update = function() {};
@@ -356,6 +366,18 @@
             alert('Level won!!!11one');
         });
 
+        var moves = 0;
+        eventEmitter.on('player.moved', function() {
+            var movesElm = document.querySelector('[moves]');
+            movesElm.innerHTML = 'Moves: ' + ++moves;
+        });
+
+        var pushes = 0;
+        eventEmitter.on('crate.moved', function() {
+            var pushesElm = document.querySelector('[pushes]');
+            pushesElm.innerHTML = 'Pushes: ' + ++pushes;
+        });
+
         addEventListener('keydown', function(e) {
             switch (e.keyCode) {
                 case 37:
@@ -370,15 +392,9 @@
                 case 40:
                     eventEmitter.emit('arrowKey.pressed', DIRECTIONS.down);
                     break;
-                default:
-                    eventEmitter.emit('arrowKey.pressed', DIRECTIONS.none);
-                    break;
             }
-            game.update();
-            game.draw();
         });
 
-        game.update();
         game.draw();
     </script>
 </body>
