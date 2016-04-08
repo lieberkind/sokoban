@@ -80,7 +80,42 @@
                 { x: 2, y: 9},
             ],
             player: { x: 11, y: 10 }
-        }
+        };
+
+        var level2 = {
+            grid: [
+              "###################",
+              "###################",
+              "###################",
+              "###################",
+              "####xx..#.....#####",
+              "####xx..#.......###",
+              "####xx..#.####..###",
+              "####xx......##..###",
+              "####xx..#.#....####",
+              "#########.##....###",
+              "######..........###",
+              "######....#.....###",
+              "###################",
+              "###################",
+              "###################",
+              "###################",
+              "###################",  
+            ],
+            crates: [
+                { x: 9, y: 6},
+                { x: 10, y: 5},
+                { x: 13, y: 5},
+                { x: 7, y: 10},
+                { x: 10, y: 10},
+                { x: 12, y: 10},
+                { x: 14, y: 10},
+                { x: 14, y: 9},
+                { x: 12, y: 9},
+                { x: 13, y: 8},
+            ],
+            player: { x: 10, y: 7 }
+        };
 
         function getNextPosition(currentPosition, direction) {
             switch (direction) {
@@ -360,7 +395,7 @@
         canvas.height = 272;
 
         var game = new Game(canvas.getContext('2d'), eventEmitter);
-        game.loadLevel(new Level(level1));
+        game.loadLevel(new Level(level2));
 
         eventEmitter.on('level.won', function() {
             alert('Level won!!!11one');
