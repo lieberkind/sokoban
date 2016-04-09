@@ -276,18 +276,19 @@
                 x: posX,
                 y: posY
             };
-            this.hasCrate = false;
         }
 
-        GoalField.prototype.update = function() {
+        GoalField.prototype.hasCrate = function() {
             var self = this;
 
             var crates = this.game.getGameObjectsOfType(Crate);
 
-            this.hasCrate = crates.some(function(crate) {
+            return crates.some(function(crate) {
                 return isSamePosition(self.position, crate.position);
             })
-        }
+        };
+
+        GoalField.prototype.update = function() {}
 
         GoalField.prototype.draw = function() {
             this.game.ctx.beginPath();
@@ -309,6 +310,10 @@
                 self.setPressedDirection(direction);
                 self.update();
                 self.draw();
+                self.resetInputs();
+                if(self.levelWon()) {
+                    this.eventEmitter.emit('level.won', undefined);
+                }
             });
         }
 
@@ -323,10 +328,6 @@
             this.gameObjects.forEach(function(gameObject) {
                 gameObject.update();
             });
-            this.resetInputs();
-            if(this.levelWon()) {
-                this.eventEmitter.emit('level.won', undefined);
-            }
         };
 
         Game.prototype.resetInputs = function() {
@@ -386,7 +387,7 @@
             var goalFields = this.getGameObjectsOfType(GoalField);
 
             return goalFields.every(function(goalField) {
-                return goalField.hasCrate;
+                return goalField.hasCrate();
             });
         };
 
@@ -395,7 +396,7 @@
         canvas.height = 272;
 
         var game = new Game(canvas.getContext('2d'), eventEmitter);
-        game.loadLevel(new Level(level2));
+        game.loadLevel(new Level(level1));
 
         eventEmitter.on('level.won', function() {
             alert('Level won!!!11one');
