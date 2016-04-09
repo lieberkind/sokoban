@@ -6,13 +6,16 @@
     <style>
         * { margin: 0; padding: 0; }
         canvas { 
-            background: cyan;
+            background: url('sprites/space.png');
+            background-size: 16px 16px;
+            height: 272px;
+            width: 304px;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <canvas width="342" height="306" id="game"></canvas>
+        <canvas id="game"></canvas>
         <div class="game-info">
             <div moves class="moves">Moves: 0</div>
             <div pushes class="pushes">Pushes: 0</div>
@@ -20,6 +23,17 @@
         <div class="game-feedback"></div>
     </div>
     <script>
+        var BLOCK_SIZE = 16;
+
+        var blockSprite = new Image;
+        blockSprite.src = 'sprites/block.png';
+
+        var crateSprite = new Image;
+        crateSprite.src = 'sprites/crate.png';
+
+        var goalFieldSprite = new Image;
+        goalFieldSprite.src = 'sprites/goalfield.png';
+
         var eventEmitter = (function() {
             var handlers = {};
 
@@ -195,7 +209,7 @@
         Player.prototype.draw = function() {
             var ctx = this.game.ctx;
             ctx.beginPath();
-            ctx.rect(this.position.x * 18 + 1, this.position.y * 18 + 1, 16, 16);
+            ctx.rect(this.position.x * BLOCK_SIZE + 1, this.position.y * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
             ctx.fillStyle = '#F00';
             ctx.fill();
             ctx.closePath();
@@ -220,81 +234,9 @@
         }
 
         Block.prototype.draw = function() {
-            var startX = this.position.x * 18;
-            var startY = this.position.y * 18;
-
-            // Grey rectangle
-            this.game.ctx.beginPath();
-            this.game.ctx.rect(startX, startY, 18, 18);
-            this.game.ctx.fillStyle = 'rgb(179, 187, 188)';
-            this.game.ctx.fill();
-            this.game.ctx.closePath();
-
-            // White shadows
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX, startY + 0.5);
-            this.game.ctx.lineTo(startX + 17, startY + 0.5);
-            this.game.ctx.strokeStyle = '#FFFFFF';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX, startY + 1.5);
-            this.game.ctx.lineTo(startX + 16, startY + 1.5);
-            this.game.ctx.strokeStyle = '#FFFFFF';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 0.5, startY);
-            this.game.ctx.lineTo(startX + 0.5, startY + 17);
-            this.game.ctx.strokeStyle = '#FFFFFF';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 1.5, startY);
-            this.game.ctx.lineTo(startX + 1.5, startY + 16);
-            this.game.ctx.strokeStyle = '#FFFFFF';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            // Grey shadows
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 2, startY + 16.5);
-            this.game.ctx.lineTo(startX + 18, startY + 16.5);
-            this.game.ctx.strokeStyle = 'rgb(116, 117, 125)';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 1, startY + 17.5);
-            this.game.ctx.lineTo(startX + 18, startY + 17.5);
-            this.game.ctx.strokeStyle = 'rgb(116, 117, 125)';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 16.5, startY + 2);
-            this.game.ctx.lineTo(startX + 16.5, startY + 18);
-            this.game.ctx.strokeStyle = 'rgb(116, 117, 125)';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.lineWidth = 1;
-            this.game.ctx.moveTo(startX + 17.5, startY + 1);
-            this.game.ctx.lineTo(startX + 17.5, startY + 18);
-            this.game.ctx.strokeStyle = 'rgb(116, 117, 125)';
-            this.game.ctx.stroke();
-            this.game.ctx.closePath();
+            var startX = this.position.x * BLOCK_SIZE;
+            var startY = this.position.y * BLOCK_SIZE;
+            this.game.ctx.drawImage(blockSprite, startX, startY, BLOCK_SIZE, BLOCK_SIZE);
         };
 
         Block.prototype.update = function() {};
@@ -331,11 +273,9 @@
         Crate.prototype.update = function() {};
 
         Crate.prototype.draw = function() {
-            this.game.ctx.beginPath();
-            this.game.ctx.rect(this.position.x * 18 + 1, this.position.y * 18 + 1, 16, 16);
-            this.game.ctx.fillStyle = '#FF0';
-            this.game.ctx.fill();
-            this.game.ctx.closePath();
+            var startX = this.position.x * BLOCK_SIZE;
+            var startY = this.position.y * BLOCK_SIZE;
+            this.game.ctx.drawImage(crateSprite, startX, startY, BLOCK_SIZE, BLOCK_SIZE);
         };
 
         function GoalField(game, posX, posY) {
@@ -359,17 +299,9 @@
         GoalField.prototype.update = function() {}
 
         GoalField.prototype.draw = function() {
-            this.game.ctx.beginPath();
-            this.game.ctx.rect(this.position.x * 18, this.position.y * 18, 18, 18);
-            this.game.ctx.fillStyle = '#000';
-            this.game.ctx.fill();
-            this.game.ctx.closePath();
-
-            this.game.ctx.beginPath();
-            this.game.ctx.rect(this.position.x * 18 + 7, this.position.y * 18 + 7, 4, 4);
-            this.game.ctx.fillStyle = '#CCC';
-            this.game.ctx.fill();
-            this.game.ctx.closePath();
+            var startX = this.position.x * BLOCK_SIZE;
+            var startY = this.position.y * BLOCK_SIZE;
+            this.game.ctx.drawImage(goalFieldSprite, startX, startY, BLOCK_SIZE, BLOCK_SIZE);
         };
 
         function Game(ctx, eventEmitter) {
@@ -466,12 +398,13 @@
         };
 
         var canvas = document.getElementById('game');
-        canvas.width = 342;
-        canvas.height = 306;
+        canvas.width = 608;
+        canvas.height = 544;
         var context = canvas.getContext('2d');
+        context.scale(2, 2);
 
         var game = new Game(context, eventEmitter);
-        game.loadLevel(new Level(level1));
+        game.loadLevel(new Level(level2));
 
         eventEmitter.on('level.won', function() {
             alert('Level won!!!11one');
