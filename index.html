@@ -6,7 +6,7 @@
     <style>
         * { margin: 0; padding: 0; }
         canvas { 
-            background: url('sprites/space.png');
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA');
             background-size: 16px 16px;
             height: 272px;
             width: 304px;
@@ -26,13 +26,13 @@
         var BLOCK_SIZE = 16;
 
         var blockSprite = new Image;
-        blockSprite.src = 'sprites/block.png';
+        blockSprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA';
 
         var crateSprite = new Image;
-        crateSprite.src = 'sprites/crate.png';
+        crateSprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA';
 
         var goalFieldSprite = new Image;
-        goalFieldSprite.src = 'sprites/goalfield.png';
+        goalFieldSprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYklEQVRYR+3VywoAIAhEUf3/jzYi2rjTgR5w3UvjIdTNLOxiOQEQQAABBL4ViFgnxH1u8361b8EzAfLsVRFZ4HiATa8+vPvLAtcD5MnVz1gWeC5AfwOsTlmAAAgggAACqsAA1gU4AQHGir0AAAAASUVORK5CYIIA';
 
         var eventEmitter = (function() {
             var handlers = {};
@@ -315,7 +315,6 @@
             this.eventEmitter.on('arrowKey.pressed', function(direction) {
                 self.setPressedDirection(direction);
                 self.update();
-                self.draw();
                 self.resetInputs();
                 if(self.levelWon()) {
                     this.eventEmitter.emit('level.won', undefined);
@@ -404,7 +403,7 @@
         context.scale(2, 2);
 
         var game = new Game(context, eventEmitter);
-        game.loadLevel(new Level(level2));
+        game.loadLevel(new Level(level1));
 
         eventEmitter.on('level.won', function() {
             alert('Level won!!!11one');
@@ -439,7 +438,14 @@
             }
         });
 
-        game.draw();
+        function gameTick() {
+            game.draw();
+            window.requestAnimationFrame(gameTick);
+        }
+
+        window.requestAnimationFrame(gameTick);
+
+        // game.draw();
     </script>
 </body>
 </html>
