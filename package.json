@@ -1,0 +1,27 @@
+{
+  "name": "sokoban",
+  "version": "1.0.0",
+  "description": "A JavaScript port of the Sokoban game for Windows 3.x",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "watchify src/main.js -o dist/js/bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lieberkind/sokoban.git"
+  },
+  "author": "Tomas Lieberkind",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lieberkind/sokoban/issues"
+  },
+  "homepage": "https://github.com/lieberkind/sokoban#readme",
+  "devDependencies": {
+    "browserify": "^13.0.0",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "ramda": "^0.21.0"
+  }
+}
