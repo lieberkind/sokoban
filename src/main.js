@@ -6,7 +6,7 @@ var Level = require('./Level');
 var LEVELS = [
     require('./levels/level0.json'),
     require('./levels/level1.json'),
-    require('./levels/level2.json')
+    // require('./levels/level2.json')
 ];
 var eventEmitter = helpers.createEventEmitter();
 
@@ -23,11 +23,16 @@ game.loadLevel(new Level(LEVELS[0]));
 
 eventEmitter.on('level.won', function() {
     window.requestAnimationFrame(function() {
-        window.requestAnimationFrame(function() {
-            alert('Kneeep');
-        
-            var nextLevelIdx = 1;
-            game.loadLevel(new Level(LEVELS[nextLevelIdx]));
+        window.requestAnimationFrame(function() {        
+            var nextLevelIdx = game.getCurrentLevel().getLevelNumber() + 1;
+
+            if(nextLevelIdx === LEVELS.length) {
+                alert('Congratulations, you have won the game!');
+            } else {
+                alert('Kneeep');
+                var nextLevel = LEVELS[nextLevelIdx];
+                game.loadLevel(new Level(LEVELS[nextLevelIdx]));
+            }
         });
     });
 });
@@ -35,13 +40,13 @@ eventEmitter.on('level.won', function() {
 var moves = 0;
 eventEmitter.on('player.moved', function() {
     var movesElm = document.querySelector('[moves]');
-    movesElm.innerHTML = 'Moves: ' + ++moves;
+    movesElm.innerHTML = (++moves) + ' moves';
 });
 
 var pushes = 0;
 eventEmitter.on('crate.moved', function() {
     var pushesElm = document.querySelector('[pushes]');
-    pushesElm.innerHTML = 'Pushes: ' + ++pushes;
+    pushesElm.innerHTML = (++pushes) + ' pushes';
 });
 
 addEventListener('keydown', function(e) {

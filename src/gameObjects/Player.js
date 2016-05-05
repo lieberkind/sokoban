@@ -38,14 +38,15 @@ Player.prototype.canMove = function(direction) {
 
     var crates = this.game.getGameObjectsOfType(Crate);
 
-    var canMoveCrate = crates.reduce(function(canMoveCrate, crate) {
-        if(helpers.isSamePosition(crate.position, dPosition)) {
-            return canMoveCrate && crate.canMove(direction);
-        }
-        return canMoveCrate;
-    }, true);
+    var collidingCrate = crates.find(function(crate) {
+        return helpers.isSamePosition(crate.position, dPosition);
+    });
 
-    return this.game.getCurrentLevel().isWithinMaze(dPosition) && canMoveCrate;
+    var isWithinMaze = this.game.getCurrentLevel().isWithinMaze(dPosition);
+
+    return collidingCrate
+        ? isWithinMaze && collidingCrate.canMove(direction)
+        : isWithinMaze;
 };
 
 Player.prototype.move = function(direction) {

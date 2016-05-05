@@ -89,7 +89,7 @@ Game.prototype.getGameObjectsOfType = function(type) {
     return this.gameObjects.filter(function(gameObject) {
         return gameObject.constructor === type;
     });
-}
+};
 
 Game.prototype.levelWon = function() {
     var goalFields = this.getGameObjectsOfType(GoalField);

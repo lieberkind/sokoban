@@ -1,10 +1,15 @@
 function Level(level) {
+    this.levelNumber = level.level;
     this.grid = level.grid.map(function(row) {
         return row.split("");
     });
     this.crates = level.crates;
     this.player = level.player;
 }
+
+Level.prototype.getLevelNumber = function() {
+    return this.levelNumber;
+};
 
 Level.prototype.isBlock = function(position) {
     return this.grid[position.y][position.x] === '#';
