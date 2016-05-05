@@ -4,7 +4,46 @@
     <title>Document</title>
 
     <style>
-        * { margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            font-family: Arial;
+            font-size: 12px;
+        }
+        .game-info {
+            background: rgb(116, 117, 125);
+            padding: 2px;
+            width: 304px;
+        }
+        .moves,
+        .pushes,
+        .game-feedback {
+            background: #fff;
+            border: 1px solid #000;
+            min-height: 1em;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .movement-info {
+            margin-bottom: 2px;
+            overflow: hidden;
+        }
+
+        .moves,
+        .pushes {
+            width: calc(50% - 1px);
+        }
+
+        .moves {
+            float: left;
+        }
+        .pushes {
+            float: right;
+        }
         canvas { 
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA');
             background-size: 16px 16px;
@@ -16,11 +55,14 @@
 <body>
     <div class="game-container">
         <canvas id="game"></canvas>
+
         <div class="game-info">
-            <div moves class="moves">Moves: 0</div>
-            <div pushes class="pushes">Pushes: 0</div>
+            <div class="movement-info">
+                <div moves class="moves">0 moves</div>
+                <div pushes class="pushes">0 pushes</div>
+            </div>
+            <div class="game-feedback">Playing level 1...</div>
         </div>
-        <div class="game-feedback"></div>
     </div>
     <script src="dist/js/bundle.js"></script>
 </body>
