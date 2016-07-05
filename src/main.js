@@ -2,6 +2,7 @@ var consts = require('./util/constants');
 var helpers = require('./util/functions');
 var Game = require('./Game');
 var Level = require('./Level');
+var R = require('ramda');
 
 var LEVELS = [
     require('./levels/level0.json'),
@@ -49,21 +50,29 @@ eventEmitter.on('crate.moved', function() {
     pushesElm.innerHTML = (++pushes) + ' pushes';
 });
 
+var movesList = [];
+
 addEventListener('keydown', function(e) {
     switch (e.keyCode) {
         case 37:
             eventEmitter.emit('arrowKey.pressed', consts.DIRECTIONS.left);
+            movesList = R.append(consts.DIRECTIONS.left, movesList);
             break;
         case 38:
             eventEmitter.emit('arrowKey.pressed', consts.DIRECTIONS.up);
+            movesList = R.append(consts.DIRECTIONS.up, movesList);
             break;
         case 39:
             eventEmitter.emit('arrowKey.pressed', consts.DIRECTIONS.right);
+            movesList = R.append(consts.DIRECTIONS.right, movesList);
             break;
         case 40:
             eventEmitter.emit('arrowKey.pressed', consts.DIRECTIONS.down);
+            movesList = R.append(consts.DIRECTIONS.down, movesList);
             break;
     }
+
+    console.log(movesList);
 });
 
 function gameTick() {
