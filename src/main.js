@@ -7,7 +7,7 @@ var R = require('ramda');
 var LEVELS = [
     require('./levels/level0.json'),
     require('./levels/level1.json'),
-    // require('./levels/level2.json')
+    require('./levels/level2.json')
 ];
 var eventEmitter = helpers.createEventEmitter();
 
