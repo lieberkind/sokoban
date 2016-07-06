@@ -4,6 +4,19 @@ var Game = require('./Game');
 var Level = require('./Level');
 var R = require('ramda');
 
+import 'babel-polyfill'
+import * as actions from './actions'
+import * as reducers from './reducers'
+import level1 from './levels/level1'
+
+var initialState = reducers.sokoban(undefined, {type: undefined});
+
+var secondState = reducers.sokoban(initialState, {
+    type: 'MOVE',
+    direction: consts.DIRECTIONS.up
+});
+console.log(secondState);
+
 var LEVELS = [
     require('./levels/level0.json'),
     require('./levels/level1.json'),
