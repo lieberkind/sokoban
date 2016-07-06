@@ -15,6 +15,7 @@ const Level = {
 }
 
 const initialState = {
+    previousState: undefined,
     levelNumber: firstLevel.level,
     levelCompleted: false,
     grid: Level.mapGrid(firstLevel.grid),
@@ -38,7 +39,6 @@ const Crate = {
 
 const Player = {
     canMove: (player, grid, crates, direction) => {
-        debugger;
         const dPosition = getNextPosition(player, direction);
 
         const collidingCrate = crates.find(crate => isSamePosition(crate, dPosition))
@@ -77,6 +77,7 @@ const makeMove = (state, direction) => {
     }());
 
     return Object.assign({}, state, {
+        previousState: state,
         player: nextPlayerPosition,
         crates: newCrates,
         movesCount: state.movesCount + 1,
@@ -85,7 +86,6 @@ const makeMove = (state, direction) => {
 }
 
 export const sokoban = function(state = initialState, action) {
-    debugger;
     switch (action.type) {
         case actions.MOVE:
             return makeMove(state, action.direction)
