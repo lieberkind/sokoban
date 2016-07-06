@@ -1,4 +1,5 @@
 import * as actions from './actions'
+import { all, contains } from 'ramda'
 import firstLevel from './levels/level1'
 import { getNextPosition, isSamePosition } from './util/functions'
 
@@ -11,10 +12,31 @@ const Level = {
             position.y < grid.length &&
             position.y >= 0 &&
             !Level.isBlock(grid, position);
+    },
+    getGoalFields: grid => {
+        let goalFields = []
+
+        grid.forEach((row, y) => {
+            row.forEach((field, x) => {
+                if (grid[y][x] === 'x') {
+                    goalFields.push({x, y});
+                }
+            })
+        })
+
+        return goalFields
+    },
+    isComplete: (grid, crates) => {
+        const goalFields = Level.getGoalFields(grid)
+
+        return all((crate) => {
+            return contains(crate, goalFields)
+        }, crates);
     }
 }
 
 const initialState = {
+    sokoSprite: 0,
     previousState: undefined,
     levelNumber: firstLevel.level,
     levelCompleted: false,
@@ -46,7 +68,7 @@ const Player = {
         const isWithinMaze = Level.isWithinMaze(grid, dPosition);
 
         return collidingCrate
-            ? isWithinMaze && Crate.canMove(collidingCrate, direction)
+            ? isWithinMaze && Crate.canMove(collidingCrate, grid, crates, direction)
             : isWithinMaze;
     }
 }
@@ -78,6 +100,7 @@ const makeMove = (state, direction) => {
 
     return Object.assign({}, state, {
         previousState: state,
+        levelCompleted: Level.isComplete(state.grid, newCrates),
         player: nextPlayerPosition,
         crates: newCrates,
         movesCount: state.movesCount + 1,
@@ -85,11 +108,22 @@ const makeMove = (state, direction) => {
     })
 }
 
-export const sokoban = function(state = initialState, action) {
+const changeSokoSprite = (state, sokoSprite) => {
+    return Object.assign({}, state, {
+        sokoSprite,
+        previousState: state
+    })
+}
+
+const sokoban = function(state = initialState, action) {
     switch (action.type) {
         case actions.MOVE:
             return makeMove(state, action.direction)
+        case actions.SOKO_SPRITE_CHANGED:
+            return changeSokoSprite(state, action.nextSprite)
         default:
             return state
     }
 }
+
+export default sokoban
