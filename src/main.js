@@ -3,6 +3,8 @@ import { curry } from 'ramda'
 import { createStore } from 'redux'
 import * as actions from './actions'
 import sokoban from './reducers'
+import level1 from './levels/level0'
+import level2 from './levels/level1'
 
 let store = createStore(sokoban);
 
@@ -79,12 +81,18 @@ const draw = function(context, state) {
     drawElement(sokoSprites[sokoSpriteIndex], player.x, player.y);
 };
 
-var t = setInterval(function() {
-    var isLastSprite = sokoSpriteIndex === sokoSprites.length - 1;
-    sokoSpriteIndex = isLastSprite ? 0 : sokoSpriteIndex + 1;
+const loadLevel = (context, level) => {
+    store.dispatch(actions.loadLevel(level));
 
-    store.dispatch(actions.undoMove());
-}, 300);
+    return setInterval(function() {
+        var isLastSprite = sokoSpriteIndex === sokoSprites.length - 1;
+        sokoSpriteIndex = isLastSprite ? 0 : sokoSpriteIndex + 1;
+
+        draw(context, store.getState());
+    }, 300);    
+}
+
+const endLevel = () => {}
 
 var unsubscribe = store.subscribe(function() {
     const state = store.getState()
@@ -98,11 +106,15 @@ var unsubscribe = store.subscribe(function() {
     if(state.levelCompleted) {
         alert(`Level completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
         clearInterval(t);
+
+        store.dispatch(actions.loadLevel(level2))
     }
+
+
 });
 
 // TODO: figure out how to start the game...
-store.dispatch({ type: 'UNDO_MOVE' });
+store.dispatch(actions.loadLevel(level1));
 
 addEventListener('keydown', function(e) {
     switch (e.keyCode) {

@@ -1,23 +1,27 @@
-import { MOVE, UNDO_MOVE } from './actions'
+import { MOVE, UNDO_MOVE, LOAD_LEVEL } from './actions'
 import firstLevel from './levels/level1'
 import { getNextPosition, isSamePosition } from './util/functions'
 import Level from './Level.js'
 import Crate from './Crate.js'
 import Player from './Player.js'
 
-const initialState = {
-    sokoSprite: 0,
-    previousState: undefined,
-    levelNumber: firstLevel.level,
-    levelCompleted: false,
-    grid: Level.mapGrid(firstLevel.grid),
-    player: firstLevel.player,
-    crates: firstLevel.crates,
-    movesCount: 0,
-    pushesCount: 0
+const initialState = {}
+
+const getNewCrates = (crates, crate, direction) => {
+    if (!crate) {
+        return crates;
+    }
+
+    const index = crates.indexOf(crate);
+
+    return [
+        ...crates.slice(0, index),
+        getNextPosition(crate, direction),
+        ...crates.slice(index + 1)
+    ];   
 }
 
-const makeMove = (state, direction) => {
+const move = (state, direction) => {
     const { player, grid, crates } = state 
 
     if (!Player.canMove(player, grid, crates, direction)) {
@@ -25,22 +29,8 @@ const makeMove = (state, direction) => {
     }
 
     const nextPlayerPosition = getNextPosition(player, direction)
-
-    const crate = crates.find(crate => isSamePosition(nextPlayerPosition, crate))
-
-    const newCrates = (function() {
-        if (!crate) {
-            return crates;
-        }
-
-        const index = crates.indexOf(crate);
-
-        return [
-            ...crates.slice(0, index),
-            getNextPosition(crate, direction),
-            ...crates.slice(index + 1)
-        ];
-    }());
+    const pushedCrate = crates.find(isSamePosition(nextPlayerPosition))
+    const newCrates = getNewCrates(crates, pushedCrate, direction)
 
     return Object.assign({}, state, {
         previousState: state,
@@ -48,14 +38,29 @@ const makeMove = (state, direction) => {
         player: nextPlayerPosition,
         crates: newCrates,
         movesCount: state.movesCount + 1,
-        pushesCount: crate ? state.pushesCount + 1 : state.pushesCount
+        pushesCount: pushedCrate ? state.pushesCount + 1 : state.pushesCount
+    })
+}
+
+const loadLevel = (state, level) => {
+    return Object.assign({}, state, {
+        previousState: undefined,
+        levelNumber: level.level,
+        levelCompleted: false,
+        grid: Level.mapGrid(level.grid),
+        player: level.player,
+        crates: level.crates,
+        movesCount: 0,
+        pushesCount: 0
     })
 }
 
 const sokoban = function(state = initialState, action) {
     switch (action.type) {
         case MOVE:
-            return makeMove(state, action.direction)
+            return move(state, action.direction)
+        case LOAD_LEVEL:
+            return loadLevel(state, action.level)
         default:
             return state
     }
