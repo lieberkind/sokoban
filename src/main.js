@@ -115,6 +115,10 @@ var unsubscribe = store.subscribe(function() {
 // TODO: figure out how to start the game...
 store.dispatch(actions.loadLevel(level1));
 
+document.getElementById('undo-move').addEventListener('click', () => {
+    store.dispatch(actions.undoMove())
+})
+
 addEventListener('keydown', function(e) {
     switch (e.keyCode) {
         case 37:

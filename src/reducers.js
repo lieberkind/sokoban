@@ -65,10 +65,21 @@ const loadLevel = (state, level) => {
     })
 }
 
+const undoMove = state => {
+    if (!state.previousState) {
+        return state
+    }
+
+    return Object.assign({}, state.previousState, {
+        previousState: undefined
+    })
+}
+
 const sokoban = function(state = initialState, action) {
     switch (action.type) {
         case MOVE: return move(state, action.direction)
         case LOAD_LEVEL: return loadLevel(state, action.level)
+        case UNDO_MOVE: return undoMove(state)
         default: return state
     }
 }
