@@ -2,6 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Document</title>
+    <link href='https://fonts.googleapis.com/css?family=Press+Start+2P|VT323|Share+Tech+Mono&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
     <style>
         * {
@@ -13,10 +14,44 @@
             font-family: Arial;
             font-size: 12px;
         }
+
+        body {
+            background: cyan;
+        }
+
+        .app-container {
+            padding: 2em;
+        }
+
+        .title {
+            color: yellow;
+            font-family: "Press Start 2P";
+            font-size: 3.6em;
+            margin-bottom: 0.1em;
+            padding-left: .15em;
+            text-align: center;
+            text-transform: uppercase;
+
+            -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: black;
+        }
+    
+        .game-container {
+            border: 2px solid #999;
+            border-right: 2px solid #eee;
+            border-bottom: 2px solid #eee;
+            box-sizing: content-box;
+            margin: 0 auto;
+
+            width: 304px;
+        }
+
         .game-info {
             background: rgb(116, 117, 125);
             padding: 2px;
             width: 304px;
+
+            margin: 0 auto;
         }
         .moves,
         .pushes,
@@ -44,24 +79,33 @@
         .pushes {
             float: right;
         }
-        canvas { 
+
+        canvas {
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA');
             background-size: 16px 16px;
+
+            display: block;
+
             height: 272px;
             width: 304px;
+
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <canvas id="game"></canvas>
+    <div class="app-container">
+        <h1 class="title">Sokoban</h1>
+        <div class="game-container">
+            <canvas id="game"></canvas>
 
-        <div class="game-info">
-            <div class="movement-info">
-                <div moves class="moves">0 moves</div>
-                <div pushes class="pushes">0 pushes</div>
+            <div class="game-info">
+                <div class="movement-info">
+                    <div moves class="moves">0 moves</div>
+                    <div pushes class="pushes">0 pushes</div>
+                </div>
+                <div class="game-feedback">Playing level 1...</div>
             </div>
-            <div class="game-feedback">Playing level 1...</div>
         </div>
     </div>
     <script src="dist/js/bundle.js?aoeu"></script>

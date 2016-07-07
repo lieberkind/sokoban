@@ -104,8 +104,7 @@ var unsubscribe = store.subscribe(function() {
     document.querySelector('[pushes]').innerHTML = `${state.pushesCount} moves`
 
     if(state.levelCompleted) {
-        alert(`Level completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
-        clearInterval(t);
+        alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
 
         store.dispatch(actions.loadLevel(level2))
     }

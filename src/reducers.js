@@ -5,7 +5,17 @@ import Level from './Level.js'
 import Crate from './Crate.js'
 import Player from './Player.js'
 
-const initialState = {}
+// Is this wrong?
+const initialState = {
+    previousState: undefined,
+    levelNumber: undefined,
+    levelCompleted: false,
+    grid: undefined,
+    player: undefined,
+    crates: undefined,
+    movesCount: 0,
+    pushesCount: 0
+}
 
 const getNewCrates = (crates, crate, direction) => {
     if (!crate) {
@@ -57,12 +67,9 @@ const loadLevel = (state, level) => {
 
 const sokoban = function(state = initialState, action) {
     switch (action.type) {
-        case MOVE:
-            return move(state, action.direction)
-        case LOAD_LEVEL:
-            return loadLevel(state, action.level)
-        default:
-            return state
+        case MOVE: return move(state, action.direction)
+        case LOAD_LEVEL: return loadLevel(state, action.level)
+        default: return state
     }
 }
 
