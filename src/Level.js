@@ -1,30 +1,35 @@
-function Level(level) {
-    this.levelNumber = level.level;
-    this.grid = level.grid.map(function(row) {
-        return row.split("");
-    });
-    this.crates = level.crates;
-    this.player = level.player;
+import { all, contains } from 'ramda'
+
+const Level = {
+    mapGrid: grid => grid.map(row => row.split('')),
+    isBlock: (grid, position) => grid[position.y][position.x] === '#',
+    isWithinMaze: (grid, position) => {
+        return position.x < grid[position.y].length &&
+            position.x >= 0 &&
+            position.y < grid.length &&
+            position.y >= 0 &&
+            !Level.isBlock(grid, position);
+    },
+    getGoalFields: grid => {
+        let goalFields = []
+
+        grid.forEach((row, y) => {
+            row.forEach((field, x) => {
+                if (grid[y][x] === 'x') {
+                    goalFields.push({x, y});
+                }
+            })
+        })
+
+        return goalFields
+    },
+    isComplete: (grid, crates) => {
+        const goalFields = Level.getGoalFields(grid)
+
+        return all((crate) => {
+            return contains(crate, goalFields)
+        }, crates);
+    }
 }
 
-Level.prototype.getLevelNumber = function() {
-    return this.levelNumber;
-};
-
-Level.prototype.isBlock = function(position) {
-    return this.grid[position.y][position.x] === '#';
-};
-
-Level.prototype.isGoalField = function(position) {
-    return this.grid[position.y][position.x] === 'x';
-}
-
-Level.prototype.isWithinMaze = function(position) {
-    return position.x < this.grid[position.y].length &&
-        position.x >= 0 &&
-        position.y < this.grid.length &&
-        position.y >= 0 &&
-        !this.isBlock(position);
-};
-
-module.exports = Level;
+export default Level

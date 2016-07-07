@@ -12,5 +12,5 @@ export const Directions = {
 
 export const changeSokoSprite = (nextSprite) => ({ type: SOKO_SPRITE_CHANGED, nextSprite })
 export const move = (direction) => ({ type: MOVE, direction })
-export const undoMove = () => { type: UNDO_MOVE }
-export const undoLevel = () => { type: UNDO_LEVEL }
+export const undoMove = () => ({ type: UNDO_MOVE })
+export const undoLevel = () => ({ type: UNDO_LEVEL })
