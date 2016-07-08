@@ -1,5 +1,4 @@
 import { MOVE, UNDO_MOVE, LOAD_LEVEL } from './actions'
-import firstLevel from './levels/level1'
 import { getNextPosition, isSamePosition } from './util/functions'
 import Level from './Level.js'
 import Crate from './Crate.js'
@@ -14,7 +13,8 @@ const initialState = {
     player: undefined,
     crates: undefined,
     movesCount: 0,
-    pushesCount: 0
+    pushesCount: 0,
+    message: ''
 }
 
 const getNewCrates = (crates, crate, direction) => {
@@ -61,7 +61,8 @@ const loadLevel = (state, level) => {
         player: level.player,
         crates: level.crates,
         movesCount: 0,
-        pushesCount: 0
+        pushesCount: 0,
+        message: `Playing level ${level.level}...`
     })
 }
 

@@ -3,11 +3,13 @@ import { curry } from 'ramda'
 import { createStore } from 'redux'
 import * as actions from './actions'
 import sokoban from './reducers'
-import level1 from './levels/level0'
-import level2 from './levels/level1'
+import level0 from './levels/0'
+import level1 from './levels/1'
+import level2 from './levels/2'
 
 let store = createStore(sokoban);
 
+const LEVELS = [level0, level1, level2]
 const BLOCK_SIZE = 16;
 
 // Get Context
@@ -16,7 +18,6 @@ canvas.width = 608;
 canvas.height = 544;
 var context = canvas.getContext('2d');
 context.scale(2, 2);
-
 
 let blockSprite = new Image;
 blockSprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA';
@@ -92,8 +93,6 @@ const loadLevel = (context, level) => {
     }, 300);    
 }
 
-const endLevel = () => {}
-
 var unsubscribe = store.subscribe(function() {
     const state = store.getState()
 
@@ -102,21 +101,24 @@ var unsubscribe = store.subscribe(function() {
 
     document.querySelector('[moves]').innerHTML = `${state.movesCount} moves`
     document.querySelector('[pushes]').innerHTML = `${state.pushesCount} moves`
+    document.querySelector('[message]').innerHTML = `${state.message}`
 
     if(state.levelCompleted) {
         alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
 
-        store.dispatch(actions.loadLevel(level2))
+        store.dispatch(actions.loadLevel(LEVELS[state.levelNumber + 1]))
     }
-
-
 });
 
-// TODO: figure out how to start the game...
-store.dispatch(actions.loadLevel(level1));
+store.dispatch(actions.loadLevel(LEVELS[0]));
 
 document.getElementById('undo-move').addEventListener('click', () => {
     store.dispatch(actions.undoMove())
+})
+
+document.getElementById('undo-level').addEventListener('click', () => {
+    const levelNumber = store.getState().levelNumber
+    store.dispatch(actions.loadLevel(LEVELS[levelNumber]))
 })
 
 addEventListener('keydown', function(e) {
