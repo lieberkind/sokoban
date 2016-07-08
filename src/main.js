@@ -54,8 +54,6 @@ const drawElement = curry((context, sprite, x, y) => {
 })(context);
 
 const draw = function(context, state) {
-    console.log("draw about to happen");
-
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     const { grid, player, crates } = state;
@@ -84,20 +82,14 @@ const draw = function(context, state) {
     drawElement(sokoSprites[sokoSpriteIndex], player.x, player.y);
 };
 
+// Animate Soko
 var interval = setInterval(() => {
-    sokoSpriteIndex = ++sokoSpriteIndex % 6;
+    sokoSpriteIndex = (sokoSpriteIndex + 1) % 6;
     draw(context, store.getState())
 }, 300);
 
 const loadLevel = (context, level) => {
     store.dispatch(actions.loadLevel(level));
-
-    return setInterval(function() {
-        var isLastSprite = sokoSpriteIndex === sokoSprites.length - 1;
-        sokoSpriteIndex = isLastSprite ? 0 : sokoSpriteIndex + 1;
-
-        draw(context, store.getState());
-    }, 300);    
 }
 
 var unsubscribe = store.subscribe(function() {
@@ -107,7 +99,7 @@ var unsubscribe = store.subscribe(function() {
     draw(context, state)
 
     document.querySelector('[moves]').innerHTML = `${state.movesCount} moves`
-    document.querySelector('[pushes]').innerHTML = `${state.pushesCount} moves`
+    document.querySelector('[pushes]').innerHTML = `${state.pushesCount} pushes`
     document.querySelector('[message]').innerHTML = `${state.message}`
 
     if(state.levelCompleted) {
