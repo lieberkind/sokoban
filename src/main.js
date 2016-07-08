@@ -43,7 +43,7 @@ sokoSprite3.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAAB
 let sokoSprite4 = new Image;
 sokoSprite4.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABB0lEQVRYR9WW2w7EIAhE5f8/2k3d2ChyGUzVdl82aZUehgGlNP/LylaKhAwtZoHXAOScSmCipMGV9/zrwuLukRZ32PdmADFzXm9NiScU2AswODlqV8Wi3FuqB44BNB/uJJ8VwOsOK+4xALvPa205OnuOzglJgWMAZpvNesCbE23cYwDQgImccMjamvn1/w2ApzxQ1QkrsBKgQkHnfM7aPeQfhqhH9eaB2wXDvFkIAClh55/ua5SX+SVWUUxoGbMUOwAwJVgpau3RzHk3SLPDVmIDAKREt6hJw7sHIAq8BsAE8U47xej3tsiAg84MVPpICXiS0MT0Mv80gGb8qaQiHhBLIQyQUMwfGRx6GRgbXCgAAAAASUVORK5CYIIA';
 
-let sokoSprites = [sokoSprite1, sokoSprite2, sokoSprite3, sokoSprite4, sokoSprite3, sokoSprite2];
+const sokoSprites = [sokoSprite1, sokoSprite2, sokoSprite3, sokoSprite4, sokoSprite3, sokoSprite2];
 let sokoSpriteIndex = 0;
 
 const drawElement = curry((context, sprite, x, y) => {
@@ -54,6 +54,8 @@ const drawElement = curry((context, sprite, x, y) => {
 })(context);
 
 const draw = function(context, state) {
+    console.log("draw about to happen");
+
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     const { grid, player, crates } = state;
@@ -82,6 +84,11 @@ const draw = function(context, state) {
     drawElement(sokoSprites[sokoSpriteIndex], player.x, player.y);
 };
 
+var interval = setInterval(() => {
+    sokoSpriteIndex = ++sokoSpriteIndex % 6;
+    draw(context, store.getState())
+}, 300);
+
 const loadLevel = (context, level) => {
     store.dispatch(actions.loadLevel(level));
 
@@ -105,6 +112,9 @@ var unsubscribe = store.subscribe(function() {
 
     if(state.levelCompleted) {
         alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
+
+        // reset sokos sprite to the first
+        sokoSpriteIndex = 0;
 
         store.dispatch(actions.loadLevel(LEVELS[state.levelNumber + 1]))
     }
