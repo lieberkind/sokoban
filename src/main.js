@@ -114,16 +114,18 @@ var unsubscribe = store.subscribe(function() {
 
 store.dispatch(actions.loadLevel(LEVELS[0]));
 
-document.getElementById('undo-move').addEventListener('click', () => {
-    store.dispatch(actions.undoMove())
-})
-
-document.getElementById('undo-level').addEventListener('click', () => {
+const undoMove = () => { store.dispatch(actions.undoMove()) }
+const undoLevel = () => {
     const levelNumber = store.getState().levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
-})
+}
+
+document.getElementById('undo-move').addEventListener('click', undoMove)
+
+document.getElementById('undo-level').addEventListener('click', undoLevel)
 
 addEventListener('keydown', function(e) {
+    console.log(e);
     switch (e.keyCode) {
         case 37:
             store.dispatch(actions.move('left'))
@@ -136,6 +138,12 @@ addEventListener('keydown', function(e) {
             break;
         case 40:
             store.dispatch(actions.move('down'))
+            break;
+        case 77:
+            undoMove()
+            break;
+        case 76:
+            undoLevel()
             break;
     }
 });
