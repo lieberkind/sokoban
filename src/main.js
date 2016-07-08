@@ -118,7 +118,7 @@ document.getElementById('undo-move').addEventListener('click', () => {
 
 document.getElementById('undo-level').addEventListener('click', () => {
     const levelNumber = store.getState().levelNumber
-    store.dispatch(actions.loadLevel(LEVELS[levelNumber]))
+    store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 })
 
 addEventListener('keydown', function(e) {

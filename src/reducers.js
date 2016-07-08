@@ -1,8 +1,8 @@
-import { MOVE, UNDO_MOVE, LOAD_LEVEL } from './actions'
+import { MOVE, UNDO_MOVE, UNDO_LEVEL, LOAD_LEVEL } from './actions'
 import { getNextPosition, isSamePosition } from './util/functions'
 import Level from './Level.js'
 import Crate from './Crate.js'
-import Player from './Player.js'
+import { Player, REASON_BLOCK } from './Player.js'
 
 // Is this wrong?
 const initialState = {
@@ -34,8 +34,12 @@ const getNewCrates = (crates, crate, direction) => {
 const move = (state, direction) => {
     const { player, grid, crates } = state 
 
-    if (!Player.canMove(player, grid, crates, direction)) {
-        return state
+    const moveResult = Player.canMove(player, grid, crates, direction)
+
+    if (!moveResult.canMove) {
+        return Object.assign({}, state, {
+            message: moveResult.reason === REASON_BLOCK ? 'Ouch!' : '{ooph...grumble}'
+        })
     }
 
     const nextPlayerPosition = getNextPosition(player, direction)
@@ -48,7 +52,8 @@ const move = (state, direction) => {
         player: nextPlayerPosition,
         crates: newCrates,
         movesCount: state.movesCount + 1,
-        pushesCount: pushedCrate ? state.pushesCount + 1 : state.pushesCount
+        pushesCount: pushedCrate ? state.pushesCount + 1 : state.pushesCount,
+        message: ''
     })
 }
 
@@ -72,7 +77,14 @@ const undoMove = state => {
     }
 
     return Object.assign({}, state.previousState, {
-        previousState: undefined
+        previousState: undefined,
+        message: 'Whew! That was close!'
+    })
+}
+
+const undoLevel = (state, level) => {
+    return Object.assign({}, loadLevel(state, level), {
+        message: 'Not so easy, is it?'
     })
 }
 
@@ -81,6 +93,7 @@ const sokoban = function(state = initialState, action) {
         case MOVE: return move(state, action.direction)
         case LOAD_LEVEL: return loadLevel(state, action.level)
         case UNDO_MOVE: return undoMove(state)
+        case UNDO_LEVEL: return undoLevel(state, action.level)
         default: return state
     }
 }

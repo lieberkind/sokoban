@@ -2,18 +2,24 @@ import { getNextPosition, isSamePosition } from './util/functions'
 import Level from './Level'
 import Crate from './Crate'
 
-const Player = {
-    canMove: (player, grid, crates, direction) => {
-        const dPosition = getNextPosition(player, direction);
+export const REASON_BLOCK = 'BLOCK'
+export const REASON_CRATE = 'CRATE'
 
-        const collidingCrate = crates.find(crate => isSamePosition(crate, dPosition))
-
-        const isWithinMaze = Level.isWithinMaze(grid, dPosition);
-
-        return collidingCrate
-            ? isWithinMaze && Crate.canMove(collidingCrate, grid, crates, direction)
-            : isWithinMaze;
+const createMoveResult = (canMove, reason) => {
+    return {
+        canMove,
+        reason: canMove ? undefined : reason
     }
 }
 
-export default Player
+export const Player = {
+    canMove: (player, grid, crates, direction) => {
+        const dPosition = getNextPosition(player, direction);
+
+        const collidingCrate = crates.find(isSamePosition(dPosition))
+
+        return collidingCrate
+            ? createMoveResult(Crate.canMove(collidingCrate, grid, crates, direction), REASON_CRATE)
+            : createMoveResult(Level.isWithinMaze(grid, dPosition), REASON_BLOCK)
+    }
+}
