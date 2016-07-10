@@ -6,10 +6,12 @@ import sokoban from './reducers'
 import level0 from './levels/0'
 import level1 from './levels/1'
 import level2 from './levels/2'
+import level3 from './levels/3'
+import level4 from './levels/4'
 
 let store = createStore(sokoban);
 
-const LEVELS = [level0, level1, level2]
+const LEVELS = [level4, level0, level1, level2, level3, level4]
 const BLOCK_SIZE = 16;
 
 // Get Context
