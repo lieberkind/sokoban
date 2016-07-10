@@ -13,6 +13,8 @@ const LEVELS = [level0, level1, level2]
 const BLOCK_SIZE = 16;
 
 // Get Context
+
+
 var canvas = document.getElementById('game');
 canvas.width = 608;
 canvas.height = 544;
@@ -114,36 +116,70 @@ var unsubscribe = store.subscribe(function() {
 
 store.dispatch(actions.loadLevel(LEVELS[0]));
 
+const moveUp = () => { store.dispatch(actions.move('up')) }
+const moveDown = () => { store.dispatch(actions.move('down')) }
+const moveLeft = () => { store.dispatch(actions.move('left')) }
+const moveRight = () => { store.dispatch(actions.move('right')) }
 const undoMove = () => { store.dispatch(actions.undoMove()) }
 const undoLevel = () => {
     const levelNumber = store.getState().levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 }
 
-document.getElementById('undo-move').addEventListener('click', undoMove)
+let arrowUpButton = document.getElementById('up-arrow');
+let arrowDownButton = document.getElementById('down-arrow');
+let arrowLeftButton = document.getElementById('left-arrow');
+let arrowRightButton = document.getElementById('right-arrow');
+let undoMoveButton = document.getElementById('undo-move');
+let undoLevelButton = document.getElementById('undo-level');
 
-document.getElementById('undo-level').addEventListener('click', undoLevel)
+arrowUpButton.addEventListener('click', moveUp)
+arrowDownButton.addEventListener('click', moveDown)
+arrowLeftButton.addEventListener('click', moveLeft)
+arrowRightButton.addEventListener('click', moveRight)
+undoMoveButton.addEventListener('click', undoMove)
+undoLevelButton.addEventListener('click', undoLevel)
 
-addEventListener('keydown', function(e) {
-    console.log(e);
+document.addEventListener('keydown', function(e) {
     switch (e.keyCode) {
         case 37:
-            store.dispatch(actions.move('left'))
+            moveLeft()
+            arrowLeftButton.classList.add('active')
             break;
         case 38:
-            store.dispatch(actions.move('up'))
+            moveUp()
+            arrowUpButton.classList.add('active')
             break;
         case 39:
-            store.dispatch(actions.move('right'))
+            moveRight()
+            arrowRightButton.classList.add('active')
             break;
         case 40:
-            store.dispatch(actions.move('down'))
+            moveDown()
+            arrowDownButton.classList.add('active')
             break;
         case 77:
             undoMove()
             break;
         case 76:
             undoLevel()
+            break;
+    }
+});
+
+document.addEventListener('keyup', function(e) {
+    switch (e.keyCode) {
+        case 37:
+            arrowLeftButton.classList.remove('active')
+            break;
+        case 38:
+            arrowUpButton.classList.remove('active')
+            break;
+        case 39:
+            arrowRightButton.classList.remove('active')
+            break;
+        case 40:
+            arrowDownButton.classList.remove('active')
             break;
     }
 });

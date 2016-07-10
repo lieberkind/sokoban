@@ -1,6 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
     <link href='https://fonts.googleapis.com/css?family=Press+Start+2P|VT323|Share+Tech+Mono&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
@@ -95,11 +96,11 @@
 
         .undo-buttons {
             width: 308px;
-            margin: 10px auto 0;
+            margin: 10px auto 30px;
             overflow: hidden;
         }
 
-        .undo-button {
+        .keyboard-button {
             background: #bbb;
             border: 4px solid #ddd;
             border-right: 4px solid #666;
@@ -112,18 +113,23 @@
             padding: 10px;
             text-shadow: 0px 1px 0px rgba(255,255,255,.3), 0px -1px 0px rgba(0,0,0,.7);
             text-transform: uppercase;
-            width: calc(50% - 2px);
         }
 
-        .undo-button:focus {
+        .keyboard-button:focus {
             outline: none;
         }
 
-        .undo-button:active {
+        .keyboard-button:active,
+        .keyboard-button.active {
             background: #aaa;
             border: 4px solid #666;
             border-right: 4px solid #ccc;
             border-bottom: 4px solid #ccc;
+        }
+
+        .undo-move,
+        .undo-level {
+            width: calc(50% - 2px);
         }
 
         .undo-move {
@@ -132,6 +138,34 @@
 
         .undo-level {
             float: right;
+        }
+
+        .arrow-buttons {
+            margin: 0 auto;
+            width: 304px;
+        }
+
+        .top-row,
+        .bottom-row {
+            margin: 0 auto;
+            width: 225px;
+        }
+
+        .arrow-button {
+            width: 75px;
+            height: 75px;
+        }
+
+        .bottom-row {
+            overflow: hidden;
+        }
+
+        .bottom-row .arrow-button {
+            float: left;
+        }
+
+        .up-arrow {
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -150,8 +184,20 @@
             </div>
         </div>
         <div class="undo-buttons">
-            <button class="undo-button undo-move" id="undo-move">Undo move (m)</button>
-            <button class="undo-button undo-level" id="undo-level">Undo level (l)</button>
+            <button class="keyboard-button undo-move" id="undo-move">Undo move (m)</button>
+            <button class="keyboard-button undo-level" id="undo-level">Undo level (l)</button>
+        </div>
+
+        <div class="arrow-buttons">
+            <div class="top-row">
+                <button id="up-arrow" class="keyboard-button arrow-button up-arrow">▲</button>
+            </div>
+
+            <div class="bottom-row">
+                <button id="left-arrow" class="keyboard-button arrow-button left-arrow">◀</button>
+                <button id="down-arrow" class="keyboard-button arrow-button down-arrow">▼</button>
+                <button id="right-arrow" class="keyboard-button arrow-button right-arrow">▶</button>
+            </div>
         </div>
     </div>
     <script src="dist/js/bundle.js?aoeu"></script>
