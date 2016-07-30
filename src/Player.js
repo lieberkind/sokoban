@@ -1,5 +1,5 @@
 import { getNextPosition, isSamePosition } from './util/functions'
-import Level from './Level'
+import { Level } from './Level'
 import Crate from './Crate'
 
 export const REASON_BLOCK = 'BLOCK'

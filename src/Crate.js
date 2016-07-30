@@ -1,5 +1,5 @@
 import { getNextPosition, isSamePosition } from './util/functions'
-import Level from './Level'
+import { Level } from './Level'
 
 const Crate = {
     canMove: (crate, grid, crates, direction) => {

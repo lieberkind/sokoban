@@ -1,6 +1,7 @@
+import { head } from 'ramda'
 import { MOVE, UNDO_MOVE, UNDO_LEVEL, LOAD_LEVEL } from './actions'
 import { getNextPosition, isSamePosition } from './util/functions'
-import Level from './Level.js'
+import { Level, OBJ_BLOCK, OBJ_CRATE, OBJ_GOAL_FIELD, OBJ_PLAYER } from './Level.js'
 import Crate from './Crate.js'
 import { Player, REASON_BLOCK } from './Player.js'
 
@@ -58,13 +59,15 @@ const move = (state, direction) => {
 }
 
 const loadLevel = (state, level) => {
+    const mappedGrid = Level.mapGrid(level.grid)
+
     return Object.assign({}, state, {
         previousState: undefined,
         levelNumber: level.level,
         levelCompleted: false,
-        grid: Level.mapGrid(level.grid),
-        player: level.player,
-        crates: level.crates,
+        grid: mappedGrid,
+        player: head(Level.getObjectsFromGrid(OBJ_PLAYER, mappedGrid)),
+        crates: Level.getObjectsFromGrid(OBJ_CRATE, mappedGrid),
         movesCount: 0,
         pushesCount: 0,
         message: `Playing level ${level.level}...`
