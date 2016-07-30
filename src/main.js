@@ -8,14 +8,14 @@ import level1 from './levels/1'
 import level2 from './levels/2'
 import level3 from './levels/3'
 import level4 from './levels/4'
+import level5 from './levels/5'
+import level8 from './levels/10'
 
-let store = createStore(sokoban);
 
-const LEVELS = [level4, level0, level1, level2, level3, level4]
+const LEVELS = [level8, level0, level1, level2, level3, level4]
 const BLOCK_SIZE = 16;
 
-// Get Context
-
+let store = createStore(sokoban, window.devToolsExtension && window.devToolsExtension());
 
 var canvas = document.getElementById('game');
 canvas.width = 608;
