@@ -2,6 +2,7 @@ import 'babel-polyfill'
 import { curry, is } from 'ramda'
 import { createStore } from 'redux'
 import * as actions from './actions'
+import * as Progress from './services/Progress'
 import sokoban from './reducers'
 import level0 from './levels/0'
 import level1 from './levels/1'
@@ -102,28 +103,6 @@ const loadLevel = (context, level) => {
     store.dispatch(actions.loadLevel(level));
 }
 
-const saveLevel = (level) => {
-    var savedAt = Date.now();
-    var levelHash = btoa(level + '-' +  savedAt);
-
-    localStorage.setItem('savedAt', savedAt);
-    localStorage.setItem('levelHash', levelHash);
-};
-
-const getLevel = function() {
-    var savedAt = localStorage.getItem('savedAt');
-    var levelHash = localStorage.getItem('levelHash');
-
-    if(!savedAt || !levelHash) {
-        return 0;
-    }
-
-    var levelPlainText = atob(levelHash);
-    var parts = levelPlainText = levelPlainText.split('-');
-
-    return parts[1] === savedAt ? parts[0] : 0;
-}
-
 var unsubscribe = store.subscribe(function() {
     const state = store.getState()
 
@@ -143,8 +122,8 @@ var unsubscribe = store.subscribe(function() {
         // reset sokos sprite to the first
         sokoSpriteIndex = 0;
 
-        // save the reached level in localStorage
-        saveLevel(nextLevel);
+        // save the reached level
+        Progress.save(nextLevel);
 
         store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
     }
@@ -168,8 +147,7 @@ const startOver = (event) => {
         return;
     }
 
-    localStorage.removeItem('savedAt');
-    localStorage.removeItem('levelHash');
+    Progress.clear();
     store.dispatch(actions.loadLevel(LEVELS[0]));
 }
 
@@ -234,5 +212,5 @@ document.addEventListener('keyup', function(e) {
     }
 });
 
-var startingLevel = parseInt(getLevel()) || 0;
+var startingLevel = parseInt(Progress.get()) || 0;
 store.dispatch(actions.loadLevel(LEVELS[startingLevel]));
