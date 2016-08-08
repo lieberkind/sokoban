@@ -9,10 +9,16 @@ import level2 from './levels/2'
 import level3 from './levels/3'
 import level4 from './levels/4'
 import level5 from './levels/5'
-import level8 from './levels/10'
+import level6 from './levels/6'
+import level7 from './levels/7'
+import level8 from './levels/8'
+import level9 from './levels/9'
+import level10 from './levels/10'
+import level11 from './levels/11'
+import level12 from './levels/12'
 
 
-const LEVELS = [level8, level0, level1, level2, level3, level4]
+const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9,level10, level11, level12];
 const BLOCK_SIZE = 16;
 
 let store = createStore(sokoban, window.devToolsExtension && window.devToolsExtension());
