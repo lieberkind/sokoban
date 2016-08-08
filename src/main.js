@@ -1,7 +1,8 @@
 import 'babel-polyfill'
-import { curry } from 'ramda'
+import { curry, is } from 'ramda'
 import { createStore } from 'redux'
 import * as actions from './actions'
+import * as Progress from './services/Progress'
 import sokoban from './reducers'
 import level0 from './levels/0'
 import level1 from './levels/1'
@@ -108,6 +109,7 @@ var unsubscribe = store.subscribe(function() {
     // Draw the game
     draw(context, state)
 
+    document.querySelector('[level]').innerHTML = `Level ${state.levelNumber}`
     document.querySelector('[moves]').innerHTML = `${state.movesCount} moves`
     document.querySelector('[pushes]').innerHTML = `${state.pushesCount} pushes`
     document.querySelector('[message]').innerHTML = `${state.message}`
@@ -115,14 +117,17 @@ var unsubscribe = store.subscribe(function() {
     if(state.levelCompleted) {
         alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
 
+        var nextLevel = state.levelNumber + 1;
+
         // reset sokos sprite to the first
         sokoSpriteIndex = 0;
 
-        store.dispatch(actions.loadLevel(LEVELS[state.levelNumber + 1]))
+        // save the reached level
+        Progress.save(nextLevel);
+
+        store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
     }
 });
-
-store.dispatch(actions.loadLevel(LEVELS[0]));
 
 const moveUp = () => { store.dispatch(actions.move('up')) }
 const moveDown = () => { store.dispatch(actions.move('down')) }
@@ -133,6 +138,18 @@ const undoLevel = () => {
     const levelNumber = store.getState().levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 }
+const startOver = (event) => {
+    event.preventDefault();
+
+    let startOver = confirm('Start from level 0 again?');
+
+    if (!startOver) {
+        return;
+    }
+
+    Progress.clear();
+    store.dispatch(actions.loadLevel(LEVELS[0]));
+}
 
 let arrowUpButton = document.getElementById('up-arrow');
 let arrowDownButton = document.getElementById('down-arrow');
@@ -140,6 +157,7 @@ let arrowLeftButton = document.getElementById('left-arrow');
 let arrowRightButton = document.getElementById('right-arrow');
 let undoMoveButton = document.getElementById('undo-move');
 let undoLevelButton = document.getElementById('undo-level');
+let startOverButton = document.querySelector('[start-over]');
 
 arrowUpButton.addEventListener('click', moveUp)
 arrowDownButton.addEventListener('click', moveDown)
@@ -147,6 +165,8 @@ arrowLeftButton.addEventListener('click', moveLeft)
 arrowRightButton.addEventListener('click', moveRight)
 undoMoveButton.addEventListener('click', undoMove)
 undoLevelButton.addEventListener('click', undoLevel)
+
+startOverButton.addEventListener('click', startOver);
 
 document.addEventListener('keydown', function(e) {
     switch (e.keyCode) {
@@ -191,3 +211,6 @@ document.addEventListener('keyup', function(e) {
             break;
     }
 });
+
+var startingLevel = parseInt(Progress.get()) || 0;
+store.dispatch(actions.loadLevel(LEVELS[startingLevel]));
