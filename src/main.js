@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import { curry } from 'ramda'
+import { curry, is } from 'ramda'
 import { createStore } from 'redux'
 import * as actions from './actions'
 import sokoban from './reducers'
@@ -102,12 +102,35 @@ const loadLevel = (context, level) => {
     store.dispatch(actions.loadLevel(level));
 }
 
+const saveLevel = (level) => {
+    var savedAt = Date.now();
+    var levelHash = btoa(level + '-' +  savedAt);
+
+    localStorage.setItem('savedAt', savedAt);
+    localStorage.setItem('levelHash', levelHash);
+};
+
+const getLevel = function() {
+    var savedAt = localStorage.getItem('savedAt');
+    var levelHash = localStorage.getItem('levelHash');
+
+    if(!savedAt || !levelHash) {
+        return 0;
+    }
+
+    var levelPlainText = atob(levelHash);
+    var parts = levelPlainText = levelPlainText.split('-');
+
+    return parts[1] === savedAt ? parts[0] : 0;
+}
+
 var unsubscribe = store.subscribe(function() {
     const state = store.getState()
 
     // Draw the game
     draw(context, state)
 
+    document.querySelector('[level]').innerHTML = `Level ${state.levelNumber}`
     document.querySelector('[moves]').innerHTML = `${state.movesCount} moves`
     document.querySelector('[pushes]').innerHTML = `${state.pushesCount} pushes`
     document.querySelector('[message]').innerHTML = `${state.message}`
@@ -115,14 +138,17 @@ var unsubscribe = store.subscribe(function() {
     if(state.levelCompleted) {
         alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
 
+        var nextLevel = state.levelNumber + 1;
+
         // reset sokos sprite to the first
         sokoSpriteIndex = 0;
 
-        store.dispatch(actions.loadLevel(LEVELS[state.levelNumber + 1]))
+        // save the reached level in localStorage
+        saveLevel(nextLevel);
+
+        store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
     }
 });
-
-store.dispatch(actions.loadLevel(LEVELS[0]));
 
 const moveUp = () => { store.dispatch(actions.move('up')) }
 const moveDown = () => { store.dispatch(actions.move('down')) }
@@ -133,6 +159,19 @@ const undoLevel = () => {
     const levelNumber = store.getState().levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 }
+const startOver = (event) => {
+    event.preventDefault();
+
+    let startOver = confirm('Start from level 0 again?');
+
+    if (!startOver) {
+        return;
+    }
+
+    localStorage.removeItem('savedAt');
+    localStorage.removeItem('levelHash');
+    store.dispatch(actions.loadLevel(LEVELS[0]));
+}
 
 let arrowUpButton = document.getElementById('up-arrow');
 let arrowDownButton = document.getElementById('down-arrow');
@@ -140,6 +179,7 @@ let arrowLeftButton = document.getElementById('left-arrow');
 let arrowRightButton = document.getElementById('right-arrow');
 let undoMoveButton = document.getElementById('undo-move');
 let undoLevelButton = document.getElementById('undo-level');
+let startOverButton = document.querySelector('[start-over]');
 
 arrowUpButton.addEventListener('click', moveUp)
 arrowDownButton.addEventListener('click', moveDown)
@@ -147,6 +187,8 @@ arrowLeftButton.addEventListener('click', moveLeft)
 arrowRightButton.addEventListener('click', moveRight)
 undoMoveButton.addEventListener('click', undoMove)
 undoLevelButton.addEventListener('click', undoLevel)
+
+startOverButton.addEventListener('click', startOver);
 
 document.addEventListener('keydown', function(e) {
     switch (e.keyCode) {
@@ -191,3 +233,6 @@ document.addEventListener('keyup', function(e) {
             break;
     }
 });
+
+var startingLevel = parseInt(getLevel()) || 0;
+store.dispatch(actions.loadLevel(LEVELS[startingLevel]));
