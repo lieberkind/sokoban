@@ -8,7 +8,7 @@ index:
 
 js:
 	mkdir -p ./dist/js
-	browserify src/main.js -o dist/js/bundle.js -t [ babelify --presets [ es2015 ] ]
+	./node_modules/.bin/browserify src/main.js -o dist/js/bundle.js -t [ babelify --presets [ es2015 ] ]
 
 clean:
 	rm -rf ./dist
