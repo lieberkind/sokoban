@@ -23,6 +23,30 @@ import level13 from './levels/13'
 const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9,level10, level11, level12, level13];
 const BLOCK_SIZE = 16;
 
+// Buttons
+let arrowUpButton = document.getElementById('up-arrow');
+let arrowDownButton = document.getElementById('down-arrow');
+let arrowLeftButton = document.getElementById('left-arrow');
+let arrowRightButton = document.getElementById('right-arrow');
+let undoMoveButton = document.getElementById('undo-move');
+let undoLevelButton = document.getElementById('undo-level');
+let startOverButton = document.querySelector('[start-over]');
+
+// Popup
+let blur = document.querySelector('[blur]');
+let popup = document.querySelector('[popup]');
+let dismissPopup = document.querySelector('[dismiss-popup]');
+let popupLevel = document.querySelector('[popup-level]')
+let popupMoves = document.querySelector('[popup-moves]')
+let popupPushes = document.querySelector('[popup-pushes]')
+
+// Game state elements
+let levelIndicator = document.querySelector('[level]')
+let movesIndicator = document.querySelector('[moves]')
+let pushesIndicator = document.querySelector('[pushes]')
+let messageIndicator = document.querySelector('[message]')
+
+
 let store = createStore(sokoban, window.devToolsExtension && window.devToolsExtension());
 
 var canvas = document.getElementById('game');
@@ -104,31 +128,46 @@ const loadLevel = (context, level) => {
     store.dispatch(actions.loadLevel(level));
 }
 
-var unsubscribe = store.subscribe(function() {
+store.subscribe(function() {
     const state = store.getState()
 
     // Draw the game
     draw(context, state)
 
-    document.querySelector('[level]').innerHTML = `Level ${state.levelNumber}`
-    document.querySelector('[moves]').innerHTML = `${state.movesCount} moves`
-    document.querySelector('[pushes]').innerHTML = `${state.pushesCount} pushes`
-    document.querySelector('[message]').innerHTML = `${state.message}`
+    levelIndicator.innerHTML = `Level ${state.levelNumber}`
+    movesIndicator.innerHTML = `${state.movesCount} moves`
+    pushesIndicator.innerHTML = `${state.pushesCount} pushes`
+    messageIndicator.innerHTML = `${state.message}`
+
+    popupLevel.innerHTML = `You completed level ${state.levelNumber}`
+    popupMoves.innerHTML = `with ${state.movesCount} moves`
+    popupPushes.innerHTML = `and ${state.pushesCount} pushes`
 
     if(state.levelCompleted) {
-        alert(`Level ${state.levelNumber} completed with ${state.movesCount} moves and ${state.pushesCount} pushes`);
+        removeEventListeners();
 
-        var nextLevel = state.levelNumber + 1;
-
-        // reset sokos sprite to the first
-        sokoSpriteIndex = 0;
-
-        // save the reached level
-        Progress.save(nextLevel);
-
-        store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
+        // Timeout, to show the player that all the boxes are all in place
+        setTimeout(showPopup, 100);
+    } else {
+        hidePopup();
     }
 });
+
+function loadNextLevel() {
+    const state = store.getState()
+
+    const nextLevel = state.levelNumber + 1;
+
+    // reset sokos sprite to the first
+    sokoSpriteIndex = 0;
+
+    // save the reached level
+    Progress.save(nextLevel);
+
+    addEventListeners();
+
+    store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
+}
 
 const moveUp = () => { store.dispatch(actions.move('up')) }
 const moveDown = () => { store.dispatch(actions.move('down')) }
@@ -152,24 +191,50 @@ const startOver = (event) => {
     store.dispatch(actions.loadLevel(LEVELS[0]));
 }
 
-let arrowUpButton = document.getElementById('up-arrow');
-let arrowDownButton = document.getElementById('down-arrow');
-let arrowLeftButton = document.getElementById('left-arrow');
-let arrowRightButton = document.getElementById('right-arrow');
-let undoMoveButton = document.getElementById('undo-move');
-let undoLevelButton = document.getElementById('undo-level');
-let startOverButton = document.querySelector('[start-over]');
+function showPopup() {
+    blur.classList.add('visible');
+    popup.classList.add('visible');
+    dismissPopup.focus();
+}
 
-arrowUpButton.addEventListener('click', moveUp)
-arrowDownButton.addEventListener('click', moveDown)
-arrowLeftButton.addEventListener('click', moveLeft)
-arrowRightButton.addEventListener('click', moveRight)
-undoMoveButton.addEventListener('click', undoMove)
-undoLevelButton.addEventListener('click', undoLevel)
+function hidePopup() {
+    blur.classList.remove('visible');
+    popup.classList.remove('visible');
+}
 
-startOverButton.addEventListener('click', startOver);
+function addEventListeners() {
+    // Add button listeners
+    arrowUpButton.addEventListener('click', moveUp)
+    arrowDownButton.addEventListener('click', moveDown)
+    arrowLeftButton.addEventListener('click', moveLeft)
+    arrowRightButton.addEventListener('click', moveRight)
+    undoMoveButton.addEventListener('click', undoMove)
+    undoLevelButton.addEventListener('click', undoLevel)
+    startOverButton.addEventListener('click', startOver);
 
-document.addEventListener('keydown', function(e) {
+    // Popup OK button
+    dismissPopup.addEventListener('click', loadNextLevel);
+
+    // Add keyboard listeners
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+}
+
+function removeEventListeners() {
+    // Remove button listeners
+    arrowUpButton.removeEventListener('click', moveUp)
+    arrowDownButton.removeEventListener('click', moveDown)
+    arrowLeftButton.removeEventListener('click', moveLeft)
+    arrowRightButton.removeEventListener('click', moveRight)
+    undoMoveButton.removeEventListener('click', undoMove)
+    undoLevelButton.removeEventListener('click', undoLevel)
+    startOverButton.removeEventListener('click', startOver);
+
+    // Remove keyboard listeners
+    document.removeEventListener('keydown', onKeyDown);
+}
+
+function onKeyDown(e) {
     switch (e.keyCode) {
         case 37:
             moveLeft()
@@ -194,9 +259,9 @@ document.addEventListener('keydown', function(e) {
             undoLevel()
             break;
     }
-});
+}
 
-document.addEventListener('keyup', function(e) {
+function onKeyUp(e) {
     switch (e.keyCode) {
         case 37:
             arrowLeftButton.classList.remove('active')
@@ -211,7 +276,9 @@ document.addEventListener('keyup', function(e) {
             arrowDownButton.classList.remove('active')
             break;
     }
-});
+}
 
+addEventListeners();
+dismissPopup.addEventListener('click', loadNextLevel);
 var startingLevel = parseInt(Progress.get()) || 0;
 store.dispatch(actions.loadLevel(LEVELS[startingLevel]));
