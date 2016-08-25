@@ -22,6 +22,24 @@
             background: cyan;
         }
 
+        .blur {
+            background-color: rgba(0, 0, 0, 0);
+            visibility: hidden;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: background-color 0.2s ease-in-out;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .blur.visible {
+            visibility: visible;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: block;
+        }
+
         .app-container {
             padding: 2em;
         }
@@ -58,7 +76,7 @@
             border-bottom: 2px solid #eee;
             box-sizing: content-box;
             margin: 0 auto;
-
+            position: relative;
             width: 304px;
         }
 
@@ -181,9 +199,71 @@
         .up-arrow {
             margin: 0 auto;
         }
+
+        .popup {
+            background: #fff;
+            border: 5px solid rgb(9, 0, 153);
+            box-sizing: border-box;
+            left: calc(50% - 136px);
+            padding: calc(1em + 10px + 15px) 15px 50px 75px;
+            position: absolute;
+            top: 48px;
+            transform: scale(0, 0);
+            transition: transform .2s ease-in-out;
+            width: 272px;
+            z-index: 2;
+        }
+
+        .popup.visible {
+            transform: scale(1, 1);
+        }
+
+        .popup:before {
+            background: rgb(9, 0, 153);
+            color: #fff;
+            content: "Sokoban";
+            display: block;
+            font-weight: bold;
+            left: 1px;
+            padding: 5px 0;
+            position: absolute;
+            text-align: center;
+            top: 1px;
+            width: calc(100% - 2px);
+        }
+
+        .popup:after {
+            background-color: rgb(255, 255, 0);
+            border: 1px solid #000;
+            border-radius: 50%;
+            content: "!";
+            display: block;
+            font-family: "Share Tech Mono", "Arial", sans-serif;
+            font-size: 2.3em;
+            height: 1em;
+            position: absolute;
+            text-align: center;
+            top: calc(0.3333em + 10px + 22px);
+            left: 20px;
+            width: 1em;
+        }
+
+        .popup .dismiss-popup {
+            border-width: 2px;
+            bottom: 10px;
+            color: #000;
+            display: block;
+            font-size: 1em;
+            left: calc(50% - 30px);
+            padding: 2px 15px;
+            position: absolute;
+            text-align: center;
+            width: 60px;
+        }
     </style>
 </head>
 <body>
+    <div blur class="blur"></div>
     <div class="app-container">
         <h1 class="title">Sokoban</h1>
         <div class="level-status">
@@ -192,6 +272,13 @@
             <a href="#" start-over class="start-over">Start over</a>
         </div>
         <div class="game-container">
+            <div popup class="popup">
+                <p popup-level></p>
+                <p popup-moves></p>
+                <p popup-pushes></p>
+                <button dismiss-popup class="keyboard-button dismiss-popup">OK</button>
+            </div>
+
             <canvas id="game"></canvas>
 
             <div class="game-info">
@@ -218,6 +305,7 @@
                 <button id="right-arrow" class="keyboard-button arrow-button right-arrow">▶</button>
             </div>
         </div>
+
     </div>
     <script src="js/bundle.js?aoeuhtsn"></script>
 </body>
