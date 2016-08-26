@@ -1,9 +1,9 @@
 import { head } from 'ramda'
 import { MOVE, UNDO_MOVE, UNDO_LEVEL, LOAD_LEVEL } from './actions'
 import { getNextPosition, isSamePosition } from './util/functions'
-import { Level, OBJ_BLOCK, OBJ_CRATE, OBJ_GOAL_FIELD, OBJ_PLAYER } from './Level.js'
-import Crate from './Crate.js'
-import { Player, REASON_BLOCK } from './Player.js'
+import { Level, OBJ_BLOCK, OBJ_CRATE, OBJ_GOAL_FIELD, OBJ_PLAYER } from './services/Level.js'
+import Crate from './services/Crate.js'
+import { Player, REASON_BLOCK } from './services/Player.js'
 
 // Is this wrong?
 const initialState = {

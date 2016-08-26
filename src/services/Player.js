@@ -1,4 +1,4 @@
-import { getNextPosition, isSamePosition } from './util/functions'
+import { getNextPosition, isSamePosition } from '../util/functions'
 import { Level } from './Level'
 import Crate from './Crate'
 
