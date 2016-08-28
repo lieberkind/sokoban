@@ -5,7 +5,6 @@ import { Level, OBJ_BLOCK, OBJ_CRATE, OBJ_GOAL_FIELD, OBJ_PLAYER } from './servi
 import Crate from './services/Crate.js'
 import { Player, REASON_BLOCK } from './services/Player.js'
 
-// Is this wrong?
 const initialState = {
     previousState: undefined,
     levelNumber: undefined,
@@ -47,8 +46,12 @@ const move = (state, direction) => {
     const pushedCrate = crates.find(isSamePosition(nextPlayerPosition))
     const newCrates = getNewCrates(crates, pushedCrate, direction)
 
+    const previousState = Object.assign({}, state, {
+        previousState: undefined
+    })
+
     return Object.assign({}, state, {
-        previousState: state,
+        previousState: previousState,
         levelCompleted: Level.isComplete(state.grid, newCrates),
         player: nextPlayerPosition,
         crates: newCrates,
