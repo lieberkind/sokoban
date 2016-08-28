@@ -6,18 +6,33 @@ import Crate from './services/Crate.js'
 import { Player, REASON_BLOCK } from './services/Player.js'
 
 // Is this wrong?
+// const initialState = {
+//     previousState: undefined,
+//     levelNumber: undefined,
+//     levelCompleted: false,
+//     grid: undefined,
+//     player: undefined,
+//     crates: undefined,
+//     movesCount: 0,
+//     pushesCount: 0,
+//     message: ''
+// }
+
 const initialState = {
-    previousState: undefined,
-    levelNumber: undefined,
-    levelCompleted: false,
-    grid: undefined,
-    player: undefined,
-    crates: undefined,
-    movesCount: 0,
-    pushesCount: 0,
-    message: ''
+    past: undefined,
+    present: {
+        levelNumber: undefined,
+        levelCompleted: false,
+        grid: undefined,
+        player: undefined,
+        crates: undefined,
+        movesCount: 0,
+        pushesCount: 0,
+        message: ''
+    }
 }
 
+// Helper
 const getNewCrates = (crates, crate, direction) => {
     if (!crate) {
         return crates;
@@ -33,13 +48,18 @@ const getNewCrates = (crates, crate, direction) => {
 }
 
 const move = (state, direction) => {
-    const { player, grid, crates } = state 
+    const { player, grid, crates } = state.present
 
     const moveResult = Player.canMove(player, grid, crates, direction)
 
     if (!moveResult.canMove) {
-        return Object.assign({}, state, {
+        const newState = Object.assign({}, state.present, {
             message: moveResult.reason === REASON_BLOCK ? 'Ouch!' : '{ooph...grumble}'
+        })
+
+        return Object.assign({}, state, {
+            past: state.past,
+            present: newState
         })
     }
 
@@ -47,22 +67,25 @@ const move = (state, direction) => {
     const pushedCrate = crates.find(isSamePosition(nextPlayerPosition))
     const newCrates = getNewCrates(crates, pushedCrate, direction)
 
-    return Object.assign({}, state, {
-        previousState: state,
-        levelCompleted: Level.isComplete(state.grid, newCrates),
+    const newState = Object.assign({}, state.present, {
+        levelCompleted: Level.isComplete(state.present.grid, newCrates),
         player: nextPlayerPosition,
         crates: newCrates,
-        movesCount: state.movesCount + 1,
-        pushesCount: pushedCrate ? state.pushesCount + 1 : state.pushesCount,
+        movesCount: state.present.movesCount + 1,
+        pushesCount: pushedCrate ? state.present.pushesCount + 1 : state.present.pushesCount,
         message: ''
+    })
+
+    return Object.assign({}, state, {
+        past: state.present,
+        present: newState
     })
 }
 
 const loadLevel = (state, level) => {
     const mappedGrid = Level.mapGrid(level.grid)
 
-    return Object.assign({}, state, {
-        previousState: undefined,
+    const newState = Object.assign({}, state.present, {
         levelNumber: level.level,
         levelCompleted: false,
         grid: mappedGrid,
@@ -72,22 +95,36 @@ const loadLevel = (state, level) => {
         pushesCount: 0,
         message: `Playing level ${level.level}...`
     })
+
+    return Object.assign({}, state, {
+        past: undefined,
+        present: newState
+    })
 }
 
 const undoMove = state => {
-    if (!state.previousState) {
+    if (!state.past) {
         return state
     }
 
-    return Object.assign({}, state.previousState, {
-        previousState: undefined,
+    const newState = Object.assign({}, state.past, {
         message: 'Whew! That was close!'
+    })
+
+    return Object.assign({}, state, {
+        past: undefined,
+        present: newState
     })
 }
 
 const undoLevel = (state, level) => {
-    return Object.assign({}, loadLevel(state, level), {
+    const newState = Object.assign({}, loadLevel(state, level).present, {
         message: 'Not so easy, is it?'
+    });
+
+    return Object.assign({}, state, {
+        past: undefined,
+        present: newState
     })
 }
 

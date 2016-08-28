@@ -57,11 +57,11 @@ context.scale(2, 2);
 
 // Animate Soko
 var interval = setInterval(() => {
-    Painter.paintNextSoko(context, store.getState())
+    Painter.paintNextSoko(context, store.getState().present)
 }, 300);
 
 store.subscribe(function() {
-    const state = store.getState()
+    const state = store.getState().present
 
     // Draw the game
     Painter.paint(context, state)
@@ -86,7 +86,7 @@ store.subscribe(function() {
 });
 
 function loadNextLevel() {
-    const state = store.getState()
+    const state = store.getState().present
 
     const nextLevel = state.levelNumber + 1;
 
@@ -107,7 +107,7 @@ const moveLeft = () => { store.dispatch(actions.move('left')) }
 const moveRight = () => { store.dispatch(actions.move('right')) }
 const undoMove = () => { store.dispatch(actions.undoMove()) }
 const undoLevel = () => {
-    const levelNumber = store.getState().levelNumber
+    const levelNumber = store.getState().present.levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 }
 const startOver = (event) => {
