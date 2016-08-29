@@ -17,20 +17,6 @@ const initialState = {
     message: ''
 }
 
-const getNewCrates = (crates, crate, direction) => {
-    if (!crate) {
-        return crates;
-    }
-
-    const index = crates.indexOf(crate);
-
-    return [
-        ...crates.slice(0, index),
-        getNextPosition(crate, direction),
-        ...crates.slice(index + 1)
-    ];   
-}
-
 const move = (state, direction) => {
     const { player, grid, crates } = state 
 
@@ -44,7 +30,7 @@ const move = (state, direction) => {
 
     const nextPlayerPosition = getNextPosition(player, direction)
     const pushedCrate = crates.find(isSamePosition(nextPlayerPosition))
-    const newCrates = getNewCrates(crates, pushedCrate, direction)
+    const newCrates = Crate.getNewCrates(crates, pushedCrate, direction)
 
     const previousState = Object.assign({}, state, {
         previousState: undefined
