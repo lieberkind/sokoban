@@ -20,9 +20,7 @@ import level11 from './levels/11'
 import level12 from './levels/12'
 import level13 from './levels/13'
 
-
 const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9,level10, level11, level12, level13];
-const BLOCK_SIZE = 16;
 
 // Buttons
 let arrowUpButton = document.getElementById('up-arrow');
