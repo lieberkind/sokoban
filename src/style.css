@@ -1,0 +1,250 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: "Share Tech Mono", "Arial", sans-serif;
+    font-size: 10px;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background: cyan;
+}
+
+.blur {
+    background-color: rgba(0, 0, 0, 0);
+    display: none;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.blur.visible {
+    display: block;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.app-container {
+    padding: calc(1.4 * 2em);
+}
+
+.title {
+    color: yellow;
+    font-family: "Press Start 2P";
+    font-size: calc(5.04em);
+    margin-bottom: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+
+    -webkit-text-stroke-width: 1px; /* We need to do a pixel value here, otherwise it looks completely weird */
+    -webkit-text-stroke-color: black;
+}
+
+.level-status {
+    color: yellow;
+    font-weight: bold;
+    font-size: 1.4em;
+    margin: 0 auto .571428571em;
+    text-align: center;
+    text-transform: uppercase;
+    width: 21.714285714em;
+}
+
+.start-over {
+    color: yellow;
+}
+
+.game-container {
+    border: 0.2em solid #999;
+    border-right: 0.2em solid #eee;
+    border-bottom: 0.2em solid #eee;
+    box-sizing: content-box;
+    margin: 0 auto;
+    position: relative;
+    width: 30.4em;
+}
+
+.game-info {
+    background: rgb(116, 117, 125);
+    padding: 0.2em;
+    width: 30.4em;
+
+    margin: 0 auto;
+}
+.moves,
+.pushes,
+.game-feedback {
+    background: #fff;
+    border: .071428571em solid #000;
+    font-size: 1.4em;
+    min-height: 1.571428571em; /* For some reason, it's not 6 but 8 pixels we need here... */
+    padding: 0.2em;
+    text-align: center;
+}
+
+.movement-info {
+    margin-bottom: 0.2em;
+    overflow: hidden;
+}
+
+.moves,
+.pushes {
+    width: calc(50% - .071428571em);
+}
+
+.moves {
+    float: left;
+}
+.pushes {
+    float: right;
+}
+
+canvas {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA');
+    background-size: 1.6em 1.6em;
+    display: block;
+    height: 27.2em;
+    width: 30.4em;
+    margin: 0 auto;
+}
+
+.undo-buttons {
+    width: 30.8em;
+    margin: 1em auto 3em;
+    overflow: hidden;
+}
+
+.keyboard-button {
+    background: #bbb;
+    border: 0.35em solid #ddd;
+    border-right: 0.35em solid #666;
+    border-bottom: 0.35em solid #666;
+    color: #666;
+    display: block;
+    font-family: "Share Tech Mono", "Arial", sans-serif;
+    font-size: 1.4em;
+    padding: .7142857143em;
+    text-shadow: 0 .071428571em 0 rgba(255,255,255,.3), 0 -.071428571em 0 rgba(0,0,0,.7);
+    text-transform: uppercase;
+}
+
+.keyboard-button:focus {
+    outline: none;
+}
+
+.keyboard-button:active,
+.keyboard-button.active {
+    background: #aaa;
+    border: .35em solid #666;
+    border-right: .35em solid #ccc;
+    border-bottom: .35em solid #ccc;
+}
+
+.keyboard-button.undo-move,
+.keyboard-button.undo-level {
+    width: calc(50% - .142857143em);
+}
+
+.keyboard-button.undo-move {
+    float: left;
+}
+
+.keyboard-button.undo-level {
+    float: right;
+}
+
+.arrow-buttons {
+    margin: 0 auto;
+    width: 30.4em;
+}
+
+.top-row,
+.bottom-row {
+    margin: 0 auto;
+    width: 22.5em;
+}
+
+.keyboard-button.arrow-button {
+    width: 5.357142857em;
+    height: 5.357142857em;
+}
+
+.bottom-row {
+    overflow: hidden;
+}
+
+.bottom-row .arrow-button {
+    float: left;
+}
+
+.up-arrow {
+    margin: 0 auto;
+}
+
+.popup {
+    background: #fff;
+    border: 0.5em solid rgb(9, 0, 153);
+    box-sizing: border-box;
+    font-size: 1.4em;
+    left: calc(50% - 9.714285714em);
+    padding: calc(1em + .714285714em + 1.071428571em) 1.071428571em 3.571428571em 5.357142857em;
+    position: absolute;
+    top: 3.428571429em;
+    transform: scale(0, 0);
+    transition: transform .2s ease-in-out;
+    width: 19.428571429em;
+    z-index: 2;
+}
+
+.popup.visible {
+    transform: scale(1, 1);
+}
+
+.popup:before {
+    background: rgb(9, 0, 153);
+    color: #fff;
+    content: "Sokoban";
+    display: block;
+    font-weight: bold;
+    left: .071428571em;
+    padding: .333333333em 0;
+    position: absolute;
+    text-align: center;
+    top: .071428571em;
+    width: calc(100% - .142857143em);
+}
+
+.popup:after {
+    background-color: rgb(255, 255, 0);
+    border: .031055901em solid #000;
+    border-radius: 50%;
+    content: "!";
+    display: block;
+    font-family: "Share Tech Mono", "Arial", sans-serif;
+    font-size: 2.3em;
+    height: 1em;
+    position: absolute;
+    text-align: center;
+    top: calc(0.3333333em + .310559006em + .683229814em);
+    left: .621118012em;
+    width: 1em;
+}
+
+.popup .dismiss-popup {
+    border-width: .142857143em;
+    bottom: .714285714em;
+    color: #000;
+    display: block;
+    font-size: 1em;
+    left: calc(50% - 2.142857143em);
+    padding: .142857143em 1.071428571em;
+    position: absolute;
+    text-align: center;
+    width: 4.285714286em;
+}
