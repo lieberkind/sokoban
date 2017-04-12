@@ -27,6 +27,8 @@
     "browserify": "^13.1.0",
     "data.maybe": "^1.2.2",
     "ramda": "^0.21.0",
-    "redux": "^3.5.2"
+    "react": "^15.5.4",
+    "redux": "^3.5.2",
+    "typescript": "^2.2.2"
   }
 }
