@@ -20,15 +20,19 @@ import level11 from './levels/11'
 import level12 from './levels/12'
 import level13 from './levels/13'
 
-const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9,level10, level11, level12, level13];
+
+const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13];
+
+let undoNode = document.getElementById('undo-buttons');
+let app = window.Elm.UndoButtons.embed(undoNode);
 
 // Buttons
 let arrowUpButton = document.getElementById('up-arrow');
 let arrowDownButton = document.getElementById('down-arrow');
 let arrowLeftButton = document.getElementById('left-arrow');
 let arrowRightButton = document.getElementById('right-arrow');
-let undoMoveButton = document.getElementById('undo-move');
-let undoLevelButton = document.getElementById('undo-level');
+// let undoMoveButton = document.getElementById('undo-move');
+// let undoLevelButton = document.getElementById('undo-level');
 let startOverButton = document.querySelector('[start-over]');
 
 // Popup
@@ -58,7 +62,7 @@ var interval = setInterval(() => {
     Painter.paintNextSoko(context, store.getState())
 }, 300);
 
-store.subscribe(function() {
+store.subscribe(function () {
     const state = store.getState()
 
     // Draw the game
@@ -73,7 +77,7 @@ store.subscribe(function() {
     popupMoves.innerHTML = `with ${state.movesCount} moves`
     popupPushes.innerHTML = `and ${state.pushesCount} pushes`
 
-    if(state.levelCompleted) {
+    if (state.levelCompleted) {
         removeEventListeners();
 
         // Timeout, to show the player that all the boxes are all in place
@@ -98,6 +102,17 @@ function loadNextLevel() {
 
     store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
 }
+
+app.ports.undo.subscribe(type => {
+    switch (type) {
+        case 'move':
+            store.dispatch(actions.undoMove())
+            break;
+        case 'level':
+            store.dispatch(actions.undoLevel(LEVELS[store.getState().levelNumber]))
+            break;
+    }
+})
 
 const moveUp = () => { store.dispatch(actions.move('up')) }
 const moveDown = () => { store.dispatch(actions.move('down')) }
@@ -138,8 +153,8 @@ function addEventListeners() {
     arrowDownButton.addEventListener('click', moveDown)
     arrowLeftButton.addEventListener('click', moveLeft)
     arrowRightButton.addEventListener('click', moveRight)
-    undoMoveButton.addEventListener('click', undoMove)
-    undoLevelButton.addEventListener('click', undoLevel)
+    // undoMoveButton.addEventListener('click', undoMove)
+    // undoLevelButton.addEventListener('click', undoLevel)
     startOverButton.addEventListener('click', startOver);
 
     // Popup OK button
@@ -156,8 +171,8 @@ function removeEventListeners() {
     arrowDownButton.removeEventListener('click', moveDown)
     arrowLeftButton.removeEventListener('click', moveLeft)
     arrowRightButton.removeEventListener('click', moveRight)
-    undoMoveButton.removeEventListener('click', undoMove)
-    undoLevelButton.removeEventListener('click', undoLevel)
+    // undoMoveButton.removeEventListener('click', undoMove)
+    // undoLevelButton.removeEventListener('click', undoLevel)
     startOverButton.removeEventListener('click', startOver);
 
     // Remove keyboard listeners

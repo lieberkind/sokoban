@@ -1,10 +1,12 @@
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <title>Sokoban</title>
-    <link href='https://fonts.googleapis.com/css?family=Press+Start+2P|VT323|Share+Tech+Mono&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Press+Start+2P|VT323|Share+Tech+Mono&subset=latin,cyrillic' rel='stylesheet'
+        type='text/css'>
 
     <style>
         * {
@@ -12,7 +14,9 @@
             margin: 0;
             padding: 0;
         }
-        html, body {
+
+        html,
+        body {
             font-family: "Share Tech Mono", "Arial", sans-serif;
             font-size: 14px;
             -webkit-font-smoothing: antialiased;
@@ -67,7 +71,7 @@
         .start-over {
             color: yellow;
         }
-    
+
         .game-container {
             border: 2px solid #999;
             border-right: 2px solid #eee;
@@ -85,12 +89,14 @@
 
             margin: 0 auto;
         }
+
         .moves,
         .pushes,
         .game-feedback {
             background: #fff;
             border: 1px solid #000;
-            min-height: calc(1em + 8px); /* For some reason, it's not 6 but 8 pixels we need here... */
+            min-height: calc(1em + 8px);
+            /* For some reason, it's not 6 but 8 pixels we need here... */
             padding: 2px;
             text-align: center;
         }
@@ -108,6 +114,7 @@
         .moves {
             float: left;
         }
+
         .pushes {
             float: right;
         }
@@ -141,7 +148,7 @@
             font-size: 14px;
             /*font-weight: bold;*/
             padding: 10px;
-            text-shadow: 0px 1px 0px rgba(255,255,255,.3), 0px -1px 0px rgba(0,0,0,.7);
+            text-shadow: 0px 1px 0px rgba(255, 255, 255, .3), 0px -1px 0px rgba(0, 0, 0, .7);
             text-transform: uppercase;
         }
 
@@ -260,6 +267,7 @@
         }
     </style>
 </head>
+
 <body>
     <div blur class="blur"></div>
     <div class="app-container">
@@ -281,16 +289,18 @@
 
             <div class="game-info">
                 <div class="movement-info">
-                    <div moves class="moves"></div>
+                    <div id="moves" moves class="moves"></div>
                     <div pushes class="pushes"></div>
                 </div>
                 <div message class="game-feedback"></div>
             </div>
         </div>
-        <div class="undo-buttons">
+
+        <div id="undo-buttons"></div>
+        <!-- <div class="undo-buttons">
             <button class="keyboard-button undo-move" id="undo-move">Undo move (m)</button>
             <button class="keyboard-button undo-level" id="undo-level">Undo level (l)</button>
-        </div>
+        </div> -->
 
         <div class="arrow-buttons">
             <div class="top-row">
@@ -305,6 +315,8 @@
         </div>
 
     </div>
+    <script src="js/undobuttons.js"></script>
     <script src="js/bundle.js?aoeuaoeuhtsnaoeuaoeu"></script>
 </body>
+
 </html>
