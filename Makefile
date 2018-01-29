@@ -1,13 +1,16 @@
-all: dist index js favicon
+all: dist index elm js favicon
 
 dist:
-	mkdir ./dist
+	mkdir -p ./dist/js
+	mkdir -p ./dist/css
 
 index:
 	cp ./src/index.html ./dist/index.html
 
+elm:
+	elm-make ./src/Buttons.elm --output=dist/js/buttons.js
+
 js:
-	mkdir -p ./dist/js
 	./node_modules/.bin/browserify src/main.js -o dist/js/bundle.js -t [ babelify --presets [ es2015 ] ]
 
 favicon:

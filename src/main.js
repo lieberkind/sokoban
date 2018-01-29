@@ -23,16 +23,14 @@ import level13 from './levels/13'
 
 const LEVELS = [level0, level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13];
 
-let undoNode = document.getElementById('undo-buttons');
-let app = window.Elm.UndoButtons.embed(undoNode);
+let elmButtons = document.getElementById('elm-buttons');
+let app = window.Elm.UndoButtons.embed(elmButtons);
 
 // Buttons
 let arrowUpButton = document.getElementById('up-arrow');
 let arrowDownButton = document.getElementById('down-arrow');
 let arrowLeftButton = document.getElementById('left-arrow');
 let arrowRightButton = document.getElementById('right-arrow');
-// let undoMoveButton = document.getElementById('undo-move');
-// let undoLevelButton = document.getElementById('undo-level');
 let startOverButton = document.querySelector('[start-over]');
 
 // Popup
@@ -103,17 +101,6 @@ function loadNextLevel() {
     store.dispatch(actions.loadLevel(LEVELS[nextLevel]));
 }
 
-app.ports.undo.subscribe(type => {
-    switch (type) {
-        case 'move':
-            store.dispatch(actions.undoMove())
-            break;
-        case 'level':
-            store.dispatch(actions.undoLevel(LEVELS[store.getState().levelNumber]))
-            break;
-    }
-})
-
 const moveUp = () => { store.dispatch(actions.move('up')) }
 const moveDown = () => { store.dispatch(actions.move('down')) }
 const moveLeft = () => { store.dispatch(actions.move('left')) }
@@ -123,6 +110,30 @@ const undoLevel = () => {
     const levelNumber = store.getState().levelNumber
     store.dispatch(actions.undoLevel(LEVELS[levelNumber]))
 }
+
+app.ports.undo.subscribe(type => {
+    switch (type) {
+        case 'UNDO_MOVE':
+            undoMove();
+            break;
+        case 'UNDO_LEVEL':
+            undoLevel();
+            break;
+        case 'MOVE_LEFT':
+            moveLeft();
+            break;
+        case 'MOVE_UP':
+            moveUp();
+            break;
+        case 'MOVE_RIGHT':
+            moveRight();
+            break;
+        case 'MOVE_DOWN':
+            moveDown();
+            break;
+    }
+})
+
 const startOver = (event) => {
     event.preventDefault();
 
@@ -148,79 +159,15 @@ function hidePopup() {
 }
 
 function addEventListeners() {
-    // Add button listeners
-    arrowUpButton.addEventListener('click', moveUp)
-    arrowDownButton.addEventListener('click', moveDown)
-    arrowLeftButton.addEventListener('click', moveLeft)
-    arrowRightButton.addEventListener('click', moveRight)
-    // undoMoveButton.addEventListener('click', undoMove)
-    // undoLevelButton.addEventListener('click', undoLevel)
     startOverButton.addEventListener('click', startOver);
 
     // Popup OK button
     dismissPopup.addEventListener('click', loadNextLevel);
-
-    // Add keyboard listeners
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('keyup', onKeyUp);
 }
 
 function removeEventListeners() {
     // Remove button listeners
-    arrowUpButton.removeEventListener('click', moveUp)
-    arrowDownButton.removeEventListener('click', moveDown)
-    arrowLeftButton.removeEventListener('click', moveLeft)
-    arrowRightButton.removeEventListener('click', moveRight)
-    // undoMoveButton.removeEventListener('click', undoMove)
-    // undoLevelButton.removeEventListener('click', undoLevel)
     startOverButton.removeEventListener('click', startOver);
-
-    // Remove keyboard listeners
-    document.removeEventListener('keydown', onKeyDown);
-}
-
-function onKeyDown(e) {
-    switch (e.keyCode) {
-        case 37:
-            moveLeft()
-            arrowLeftButton.classList.add('active')
-            break;
-        case 38:
-            moveUp()
-            arrowUpButton.classList.add('active')
-            break;
-        case 39:
-            moveRight()
-            arrowRightButton.classList.add('active')
-            break;
-        case 40:
-            moveDown()
-            arrowDownButton.classList.add('active')
-            break;
-        case 77:
-            undoMove()
-            break;
-        case 76:
-            undoLevel()
-            break;
-    }
-}
-
-function onKeyUp(e) {
-    switch (e.keyCode) {
-        case 37:
-            arrowLeftButton.classList.remove('active')
-            break;
-        case 38:
-            arrowUpButton.classList.remove('active')
-            break;
-        case 39:
-            arrowRightButton.classList.remove('active')
-            break;
-        case 40:
-            arrowDownButton.classList.remove('active')
-            break;
-    }
 }
 
 addEventListeners();
