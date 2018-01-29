@@ -5,48 +5,65 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Keyboard exposing (..)
 
+
 main : Program Never Model Msg
 main =
-  Html.program 
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
 
 -- MODEL
 
-type Model = None
+
+type Model
+    = None
+
 
 model : Model
-model = None
+model =
+    None
 
-init : (Model, Cmd Msg)
+
+init : ( Model, Cmd Msg )
 init =
-  (None, Cmd.none)
+    ( None, Cmd.none )
+
 
 
 -- UPDATE
 
-type Direction = Left | Right | Up | Down
 
-type Msg 
+type Direction
+    = Left
+    | Right
+    | Up
+    | Down
+
+
+type Msg
     = UndoMove
     | UndoLevel
     | Move Direction
-    | NoOp 
+    | NoOp
+
 
 port undo : String -> Cmd msg
+
 
 toJSMsg : Msg -> String
 toJSMsg msg =
     case msg of
         UndoMove ->
             "UNDO_MOVE"
-        
+
         UndoLevel ->
             "UNDO_LEVEL"
-        
+
         NoOp ->
             "NOOP"
 
@@ -57,24 +74,27 @@ toJSMsg msg =
 
                 Up ->
                     "MOVE_UP"
-                
+
                 Right ->
                     "MOVE_RIGHT"
 
                 Down ->
                     "MOVE_DOWN"
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            (model, Cmd.none)
-        
+            ( model, Cmd.none )
+
         _ ->
-            (model, undo (toJSMsg msg))
-    
+            ( model, undo (toJSMsg msg) )
+
+
 
 -- VIEW
+
 
 view : Model -> Html Msg
 view model =
@@ -83,11 +103,9 @@ view model =
             [ button [ class "keyboard-button undo-move", onClick UndoMove ] [ text "Undo Move (M)" ]
             , button [ class "keyboard-button undo-level", onClick UndoLevel ] [ text "Undo Level (L)" ]
             ]
-            
         , div [ class "arrow-buttons" ]
             [ div [ class "top-row" ]
                 [ button [ class "keyboard-button arrow-button up-arrow", onClick (Move Up) ] [ text "▲" ] ]
-            
             , div [ class "bottom-row" ]
                 [ button [ class "keyboard-button arrow-button left-arrow", onClick (Move Left) ] [ text "◀" ]
                 , button [ class "keyboard-button arrow-button down-arrow", onClick (Move Down) ] [ text "▼" ]
@@ -96,7 +114,10 @@ view model =
             ]
         ]
 
+
+
 -- SUBSCRIPTIONS
+
 
 keycodeToCmd : KeyCode -> Msg
 keycodeToCmd code =
@@ -106,20 +127,21 @@ keycodeToCmd code =
 
         77 ->
             UndoMove
-        
+
         37 ->
             Move Left
-        
+
         38 ->
             Move Up
-        
+
         39 ->
             Move Right
-        
+
         40 ->
             Move Down
-        
-        _ -> NoOp
+
+        _ ->
+            NoOp
 
 
 subscriptions : Model -> Sub Msg
