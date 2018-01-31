@@ -1,9 +1,26 @@
 port module UndoButtons exposing (..)
 
+import List
+import Set exposing (Set, insert, remove)
 import Html exposing (..)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
+
+
+keyCodes =
+    { left = 37
+    , up = 38
+    , right = 39
+    , down = 40
+    , l = 76
+    , m = 77
+    }
+
+
+isKeyCodeRelevant : Int -> Bool
+isKeyCodeRelevant keyCode =
+    List.member keyCode [ keyCodes.left, keyCodes.up, keyCodes.right, keyCodes.down, keyCodes.l, keyCodes.m ]
 
 
 main : Program Never Model Msg
@@ -20,96 +37,113 @@ main =
 -- MODEL
 
 
-type Model
-    = None
+type alias Model =
+    { keysDown : Set Int
+    }
 
 
 model : Model
 model =
-    None
+    { keysDown = Set.empty }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( None, Cmd.none )
+    ( model, Cmd.none )
 
 
 
 -- UPDATE
 
 
-type Direction
-    = Left
-    | Right
-    | Up
-    | Down
-
-
 type Msg
-    = UndoMove
-    | UndoLevel
-    | Move Direction
+    = KeyDown KeyCode
+    | KeyUp KeyCode
     | NoOp
 
 
 port undo : String -> Cmd msg
 
 
-toJSMsg : Msg -> String
-toJSMsg msg =
+keyCodeToJSMsg : Msg -> String
+keyCodeToJSMsg msg =
     case msg of
-        UndoMove ->
-            "UNDO_MOVE"
+        KeyDown keyCode ->
+            if keyCode == keyCodes.left then
+                "MOVE_LEFT"
+            else if keyCode == keyCodes.up then
+                "MOVE_UP"
+            else if keyCode == keyCodes.right then
+                "MOVE_RIGHT"
+            else if keyCode == keyCodes.down then
+                "MOVE_DOWN"
+            else if keyCode == keyCodes.l then
+                "UNDO_LEVEL"
+            else if keyCode == keyCodes.m then
+                "UNDO_MOVE"
+            else
+                "NOOP"
 
-        UndoLevel ->
-            "UNDO_LEVEL"
-
-        NoOp ->
+        _ ->
             "NOOP"
-
-        Move direction ->
-            case direction of
-                Left ->
-                    "MOVE_LEFT"
-
-                Up ->
-                    "MOVE_UP"
-
-                Right ->
-                    "MOVE_RIGHT"
-
-                Down ->
-                    "MOVE_DOWN"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        KeyDown keyCode ->
+            if isKeyCodeRelevant keyCode then
+                ( { model | keysDown = insert keyCode model.keysDown }, undo (keyCodeToJSMsg msg) )
+            else
+                ( model, Cmd.none )
+
+        KeyUp keyCode ->
+            if isKeyCodeRelevant keyCode then
+                ( { model | keysDown = remove keyCode model.keysDown }, Cmd.none )
+            else
+                ( model, Cmd.none )
 
         _ ->
-            ( model, undo (toJSMsg msg) )
+            ( model, Cmd.none )
 
 
 
 -- VIEW
 
 
+keyboardButton : List String -> Int -> String -> Model -> Html Msg
+keyboardButton classes keyCode label model =
+    let
+        defaultClasses =
+            [ ( "keyboard-button", True )
+            , ( "active", Set.member keyCode model.keysDown )
+            ]
+
+        customClasses =
+            (List.map (\className -> ( className, True )) classes)
+    in
+        button
+            [ classList (List.append defaultClasses customClasses)
+            , onMouseDown (KeyDown keyCode)
+            , onMouseUp (KeyUp keyCode)
+            ]
+            [ text label ]
+
+
 view : Model -> Html Msg
 view model =
     div []
         [ div [ class "undo-buttons" ]
-            [ button [ class "keyboard-button undo-move", onClick UndoMove ] [ text "Undo Move (M)" ]
-            , button [ class "keyboard-button undo-level", onClick UndoLevel ] [ text "Undo Level (L)" ]
+            [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
+            , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model
             ]
         , div [ class "arrow-buttons" ]
             [ div [ class "top-row" ]
-                [ button [ class "keyboard-button arrow-button up-arrow", onClick (Move Up) ] [ text "▲" ] ]
+                [ keyboardButton [ "arrow-button", "up-arrow" ] keyCodes.up "▲" model ]
             , div [ class "bottom-row" ]
-                [ button [ class "keyboard-button arrow-button left-arrow", onClick (Move Left) ] [ text "◀" ]
-                , button [ class "keyboard-button arrow-button down-arrow", onClick (Move Down) ] [ text "▼" ]
-                , button [ class "keyboard-button arrow-button right-arrow", onClick (Move Right) ] [ text "▶" ]
+                [ keyboardButton [ "arrow-button", "up-arrow" ] keyCodes.left "◀" model
+                , keyboardButton [ "arrow-button", "down-arrow" ] keyCodes.down "▼" model
+                , keyboardButton [ "arrow-button", "right-arrow" ] keyCodes.right "▶" model
                 ]
             ]
         ]
@@ -119,31 +153,25 @@ view model =
 -- SUBSCRIPTIONS
 
 
-keycodeToCmd : KeyCode -> Msg
-keycodeToCmd code =
-    case code of
-        76 ->
-            UndoLevel
+keyDownToMsg : KeyCode -> Msg
+keyDownToMsg keyCode =
+    if isKeyCodeRelevant keyCode then
+        KeyDown keyCode
+    else
+        NoOp
 
-        77 ->
-            UndoMove
 
-        37 ->
-            Move Left
-
-        38 ->
-            Move Up
-
-        39 ->
-            Move Right
-
-        40 ->
-            Move Down
-
-        _ ->
-            NoOp
+keyUpToMsg : KeyCode -> Msg
+keyUpToMsg keyCode =
+    if isKeyCodeRelevant keyCode then
+        KeyUp keyCode
+    else
+        NoOp
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Keyboard.downs keycodeToCmd
+    Sub.batch
+        [ Keyboard.downs keyDownToMsg
+        , Keyboard.ups keyUpToMsg
+        ]
