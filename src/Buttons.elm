@@ -42,13 +42,13 @@ main =
 
 type alias Model =
     { keysDown : Set Int
-    , grid : Game.Grid
+    , game : Game.Game
     }
 
 
 model : Model
 model =
-    { keysDown = Set.empty, grid = Game.empty }
+    { keysDown = Set.empty, game = Game.empty }
 
 
 init : ( Model, Cmd Msg )
@@ -92,18 +92,47 @@ keyCodeToJSMsg msg =
             "NOOP"
 
 
+keyCodeToDirection : Int -> Game.Direction
+keyCodeToDirection keyCode =
+    if keyCode == keyCodes.left then
+        Game.Left
+    else if keyCode == keyCodes.up then
+        Game.Up
+    else if keyCode == keyCodes.right then
+        Game.Right
+    else if keyCode == keyCodes.down then
+        Game.Down
+    else
+        Game.Down
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         KeyDown keyCode ->
             if isKeyCodeRelevant keyCode then
-                ( { model | keysDown = insert keyCode model.keysDown }, undo (keyCodeToJSMsg msg) )
+                ( { model
+                    | keysDown = insert keyCode model.keysDown
+                    , game =
+                        case Game.move (keyCodeToDirection keyCode) model.game of
+                            Result.Ok game ->
+                                game
+
+                            _ ->
+                                model.game
+                  }
+                , undo (keyCodeToJSMsg msg)
+                )
             else
                 ( model, Cmd.none )
 
         KeyUp keyCode ->
             if isKeyCodeRelevant keyCode then
-                ( { model | keysDown = remove keyCode model.keysDown }, Cmd.none )
+                ( { model
+                    | keysDown = remove keyCode model.keysDown
+                  }
+                , Cmd.none
+                )
             else
                 ( model, Cmd.none )
 
@@ -140,9 +169,7 @@ printGameObject obj =
         Game.FreeSpace ->
             div
                 [ style
-                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
-                    , ( "background-repeat", "no-repeat" )
-                    , ( "background-size", "20px 20px" )
+                    [ ( "background-size", "20px 20px" )
                     , ( "width", "20px" )
                     , ( "height", "20px" )
                     , ( "float", "left" )
@@ -203,7 +230,7 @@ printGrid grid =
 view : Model -> Html Msg
 view model =
     div []
-        [ printGrid model.grid
+        [ printGrid model.game.grid
         , div [ class "undo-buttons" ]
             [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
             , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model

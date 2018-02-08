@@ -1,4 +1,12 @@
-module Game exposing (Grid, Game, GameObject(FreeSpace, Block, Crate, Player), empty)
+module Game
+    exposing
+        ( Grid
+        , Game
+        , Direction(Left, Up, Right, Down)
+        , GameObject(FreeSpace, Block, Crate, Player)
+        , empty
+        , move
+        )
 
 import Matrix exposing (..)
 import Set exposing (Set)
@@ -33,7 +41,6 @@ type alias Game =
     { grid : Matrix GameObject
     , goalFields : Set Location
     , playerLocation : Location
-    , crates : Set Location
     }
 
 
@@ -57,9 +64,21 @@ getAdjacentLocation location direction =
                 loc (row + 1) col
 
 
-empty : Grid
+empty : Game
 empty =
-    Matrix.square 19 (\_ -> FreeSpace)
+    Game
+        (Matrix.fromList
+            [ [ Block, Block, Block, Block, Block, Block, Block ]
+            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
+            , [ Block, Player, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
+            , [ Block, FreeSpace, Crate, Crate, FreeSpace, FreeSpace, Block ]
+            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
+            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
+            , [ Block, Block, Block, Block, Block, Block, Block ]
+            ]
+        )
+        Set.empty
+        ( 2, 1 )
 
 
 move : Direction -> Game -> Result MoveError Game
