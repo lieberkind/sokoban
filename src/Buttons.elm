@@ -3,11 +3,14 @@ port module UndoButtons exposing (..)
 import List
 import Set exposing (Set, insert, remove)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
+import Game exposing (GameObject(FreeSpace))
+import Matrix
 
 
+keyCodes : { down : Int, l : Int, left : Int, m : Int, up : Int, right : Int }
 keyCodes =
     { left = 37
     , up = 38
@@ -39,12 +42,13 @@ main =
 
 type alias Model =
     { keysDown : Set Int
+    , grid : Game.Grid
     }
 
 
 model : Model
 model =
-    { keysDown = Set.empty }
+    { keysDown = Set.empty, grid = Game.empty }
 
 
 init : ( Model, Cmd Msg )
@@ -130,10 +134,77 @@ keyboardButton classes keyCode label model =
             [ text label ]
 
 
+printGameObject : GameObject -> Html Msg
+printGameObject obj =
+    case obj of
+        Game.FreeSpace ->
+            div
+                [ style
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
+                    , ( "background-repeat", "no-repeat" )
+                    , ( "background-size", "20px 20px" )
+                    , ( "width", "20px" )
+                    , ( "height", "20px" )
+                    , ( "float", "left" )
+                    ]
+                ]
+                []
+
+        Game.Block ->
+            div
+                [ style
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
+                    , ( "background-repeat", "no-repeat" )
+                    , ( "background-size", "20px 20px" )
+                    , ( "width", "20px" )
+                    , ( "height", "20px" )
+                    , ( "float", "left" )
+                    ]
+                ]
+                []
+
+        Game.Crate ->
+            div
+                [ style
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
+                    , ( "background-repeat", "no-repeat" )
+                    , ( "background-size", "20px 20px" )
+                    , ( "width", "20px" )
+                    , ( "height", "20px" )
+                    , ( "float", "left" )
+                    ]
+                ]
+                []
+
+        Game.Player ->
+            div
+                [ style
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
+                    , ( "background-repeat", "no-repeat" )
+                    , ( "background-size", "20px 20px" )
+                    , ( "width", "20px" )
+                    , ( "height", "20px" )
+                    , ( "float", "left" )
+                    ]
+                ]
+                []
+
+
+printGrid : Matrix.Matrix Game.GameObject -> Html Msg
+printGrid grid =
+    let
+        printRow : List GameObject -> Html Msg
+        printRow objects =
+            div [ style [ ( "overflow", "hidden" ) ] ] (List.map printGameObject objects)
+    in
+        div [ class "grid" ] (List.map printRow (Matrix.toList grid))
+
+
 view : Model -> Html Msg
 view model =
     div []
-        [ div [ class "undo-buttons" ]
+        [ printGrid model.grid
+        , div [ class "undo-buttons" ]
             [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
             , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model
             ]
