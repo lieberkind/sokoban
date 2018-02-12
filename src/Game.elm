@@ -3,7 +3,7 @@ module Game
         ( Grid
         , Game
         , Direction(Left, Up, Right, Down)
-        , GameObject(FreeSpace, Block, Crate, Player)
+        , GameObject(Space, Block, Crate, Player)
         , empty
         , move
         )
@@ -13,7 +13,7 @@ import Set exposing (Set)
 
 
 type GameObject
-    = FreeSpace
+    = Space
     | Block
     | Crate
     | Player
@@ -69,11 +69,11 @@ empty =
     Game
         (Matrix.fromList
             [ [ Block, Block, Block, Block, Block, Block, Block ]
-            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
-            , [ Block, Player, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
-            , [ Block, FreeSpace, Crate, Crate, FreeSpace, FreeSpace, Block ]
-            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
-            , [ Block, FreeSpace, FreeSpace, FreeSpace, FreeSpace, FreeSpace, Block ]
+            , [ Block, Space, Space, Space, Space, Space, Block ]
+            , [ Block, Player, Space, Space, Space, Space, Block ]
+            , [ Block, Space, Crate, Crate, Space, Space, Block ]
+            , [ Block, Space, Space, Space, Space, Space, Block ]
+            , [ Block, Space, Space, Space, Space, Space, Block ]
             , [ Block, Block, Block, Block, Block, Block, Block ]
             ]
         )
@@ -95,7 +95,7 @@ move direction game =
         movePlayer : Game -> Matrix GameObject
         movePlayer game =
             game.grid
-                |> Matrix.set game.playerLocation FreeSpace
+                |> Matrix.set game.playerLocation Space
                 |> Matrix.set oneSpaceAway Player
 
         pushCrate : Game -> Matrix GameObject
@@ -104,10 +104,10 @@ move direction game =
                 |> Matrix.set twoSpacesAway Crate
     in
         case ( Matrix.get oneSpaceAway game.grid, Matrix.get twoSpacesAway game.grid ) of
-            ( Just Crate, Just FreeSpace ) ->
+            ( Just Crate, Just Space ) ->
                 Result.Ok { game | grid = pushCrate game, playerLocation = oneSpaceAway }
 
-            ( Just FreeSpace, _ ) ->
+            ( Just Space, _ ) ->
                 Result.Ok { game | grid = movePlayer game, playerLocation = oneSpaceAway }
 
             ( Nothing, _ ) ->
