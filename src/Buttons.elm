@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
-import Game exposing (GameObject(FreeSpace))
+import Game exposing (GameObject(Space))
 import Matrix
 
 
@@ -166,7 +166,7 @@ keyboardButton classes keyCode label model =
 printGameObject : GameObject -> Html Msg
 printGameObject obj =
     case obj of
-        Game.FreeSpace ->
+        Game.Space ->
             div
                 [ style
                     [ ( "background-size", "20px 20px" )
@@ -196,6 +196,7 @@ printGameObject obj =
                     [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
                     , ( "background-repeat", "no-repeat" )
                     , ( "background-size", "20px 20px" )
+                    , ( "background-color", "black" )
                     , ( "width", "20px" )
                     , ( "height", "20px" )
                     , ( "float", "left" )
