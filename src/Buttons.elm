@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
-import Game exposing (GameObject(Space))
+import Game exposing (GameObject(Block, Space), MovingObject(Player, Crate))
 import Matrix
 
 
@@ -165,57 +165,107 @@ keyboardButton classes keyCode label model =
 
 printGameObject : GameObject -> Html Msg
 printGameObject obj =
-    case obj of
-        Game.Space ->
-            div
-                [ style
-                    [ ( "background-size", "20px 20px" )
-                    , ( "width", "20px" )
-                    , ( "height", "20px" )
-                    , ( "float", "left" )
-                    ]
-                ]
-                []
+    let
+        renderOccupant : GameObject -> List (Html Msg)
+        renderOccupant obj =
+            case obj of
+                Game.Block ->
+                    []
 
-        Game.Block ->
-            div
-                [ style
-                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
-                    , ( "background-repeat", "no-repeat" )
-                    , ( "background-size", "20px 20px" )
-                    , ( "width", "20px" )
-                    , ( "height", "20px" )
-                    , ( "float", "left" )
-                    ]
-                ]
-                []
+                Game.Space s ->
+                    case s.occupant of
+                        Nothing ->
+                            []
 
-        Game.Crate ->
-            div
-                [ style
-                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
-                    , ( "background-repeat", "no-repeat" )
-                    , ( "background-size", "20px 20px" )
-                    , ( "background-color", "black" )
-                    , ( "width", "20px" )
-                    , ( "height", "20px" )
-                    , ( "float", "left" )
-                    ]
-                ]
-                []
+                        Just Game.Player ->
+                            [ div
+                                [ style
+                                    [ ( "width", "15px" )
+                                    , ( "height", "15px" )
+                                    , ( "background-color", "red" )
+                                    ]
+                                ]
+                                []
+                            ]
 
-        Game.Player ->
-            div
-                [ style
-                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
-                    , ( "background-repeat", "no-repeat" )
-                    , ( "background-size", "20px 20px" )
-                    , ( "width", "20px" )
-                    , ( "height", "20px" )
-                    , ( "float", "left" )
+                        Just Game.Crate ->
+                            [ div
+                                [ style
+                                    [ ( "width", "15px" )
+                                    , ( "height", "15px" )
+                                    , ( "background-color", "yellow" )
+                                    ]
+                                ]
+                                []
+                            ]
+    in
+        case obj of
+            Game.Space s ->
+                case s.kind of
+                    Game.GoalField ->
+                        div
+                            [ style
+                                [ ( "background-size", "20px 20px" )
+                                , ( "background-color", "black" )
+                                , ( "width", "20px" )
+                                , ( "height", "20px" )
+                                , ( "float", "left" )
+                                ]
+                            ]
+                            (renderOccupant obj)
+
+                    Game.Path ->
+                        div
+                            [ style
+                                [ ( "background-size", "20px 20px" )
+                                , ( "background-color", "cyan" )
+                                , ( "width", "20px" )
+                                , ( "height", "20px" )
+                                , ( "float", "left" )
+                                ]
+                            ]
+                            (renderOccupant obj)
+
+            Game.Block ->
+                div
+                    [ style
+                        [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
+                        , ( "background-repeat", "no-repeat" )
+                        , ( "background-size", "20px 20px" )
+                        , ( "width", "20px" )
+                        , ( "height", "20px" )
+                        , ( "float", "left" )
+                        ]
                     ]
-                ]
-                []
+                    []
+
+
+
+-- Game.Crate ->
+--     div
+--         [ style
+--             [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
+--             , ( "background-repeat", "no-repeat" )
+--             , ( "background-size", "20px 20px" )
+--             , ( "background-color", "black" )
+--             , ( "width", "20px" )
+--             , ( "height", "20px" )
+--             , ( "float", "left" )
+--             ]
+--         ]
+--         []
+-- Game.Player ->
+--     div
+--         [ style
+--             [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
+--             , ( "background-repeat", "no-repeat" )
+--             , ( "background-size", "20px 20px" )
+--             , ( "width", "20px" )
+--             , ( "height", "20px" )
+--             , ( "float", "left" )
+--             ]
+--         ]
+--         []
 
 
 printGrid : Matrix.Matrix Game.GameObject -> Html Msg

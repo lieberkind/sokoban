@@ -4,6 +4,8 @@ module Game
         , Game
         , Direction(Left, Up, Right, Down)
         , GameObject(..)
+        , SpaceType(..)
+        , MovingObject(..)
         , empty
         , move
         )
@@ -20,6 +22,10 @@ type SpaceType
 type MovingObject
     = Player
     | Crate
+
+
+
+-- Needing to have "kind" as a field in the record seems wrong. How do I fix that?
 
 
 type GameObject
