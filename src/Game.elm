@@ -121,6 +121,24 @@ move direction game =
         twoSpacesAway : Location
         twoSpacesAway =
             getAdjacentLocation oneSpaceAway direction
+
+        movePlayer : Occupyable r -> Occupyable r -> Game -> Game
+        movePlayer o1 o2 game =
+            { game
+                | playerLocation = oneSpaceAway
+                , grid =
+                    game.grid
+                        |> Matrix.set game.playerLocation (o1 |> empty)
+                        |> Matrix.set oneSpaceAway (o2 |> occupyWith Player)
+            }
+
+        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Game -> Game
+        pushCrate o1 o2 o3 game =
+            let
+                newGame =
+                    movePlayer o1 o2 game
+            in
+                { newGame | grid = Matrix.set twoSpacesAway (o3 |> occupyWith Crate) newGame.grid }
     in
         case
             ( objectAt game.playerLocation game.grid
@@ -139,36 +157,17 @@ move direction game =
 
                     Nothing ->
                         Result.Ok
-                            { game
-                                | playerLocation = oneSpaceAway
-                                , grid =
-                                    game.grid
-                                        |> Matrix.set game.playerLocation (s1 |> empty)
-                                        |> Matrix.set oneSpaceAway (s2 |> occupyWith Player)
-                            }
+                            (movePlayer s1 s2 game)
 
             ( Space s1, Space s2, Space s3 ) ->
                 case ( s2.occupant, s3.occupant ) of
                     ( Nothing, _ ) ->
                         Result.Ok
-                            { game
-                                | playerLocation = oneSpaceAway
-                                , grid =
-                                    game.grid
-                                        |> Matrix.set game.playerLocation (s1 |> empty)
-                                        |> Matrix.set oneSpaceAway (s2 |> occupyWith Player)
-                            }
+                            (movePlayer s1 s2 game)
 
                     ( Just Crate, Nothing ) ->
                         Result.Ok
-                            { game
-                                | playerLocation = oneSpaceAway
-                                , grid =
-                                    game.grid
-                                        |> Matrix.set game.playerLocation (s1 |> empty)
-                                        |> Matrix.set oneSpaceAway (s2 |> occupyWith Player)
-                                        |> Matrix.set twoSpacesAway (s3 |> occupyWith Crate)
-                            }
+                            (pushCrate s1 s2 s3 game)
 
                     ( Just Crate, Just _ ) ->
                         Result.Err BlockedByCrate
