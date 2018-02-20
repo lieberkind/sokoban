@@ -6,12 +6,11 @@ module Game
         , GameObject(..)
         , SpaceType(..)
         , MovingObject(..)
-        , empty
+        , emptyGame
         , move
         )
 
 import Matrix exposing (..)
-import Set exposing (Set)
 
 
 type SpaceType
@@ -57,9 +56,24 @@ type alias Grid =
 
 type alias Game =
     { grid : Matrix GameObject
-    , goalFields : Set Location
     , playerLocation : Location
     }
+
+
+emptyGame : Game
+emptyGame =
+    Game
+        (Matrix.fromList
+            [ [ Block, Block, Block, Block, Block, Block, Block ]
+            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
+            , [ Block, Space { occupant = Just Player, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
+            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Just Crate, kind = Path }, Space { occupant = Just Crate, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
+            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = GoalField }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
+            , [ Block, Space { occupant = Nothing, kind = GoalField }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
+            , [ Block, Block, Block, Block, Block, Block, Block ]
+            ]
+        )
+        ( 2, 1 )
 
 
 occupyWith : MovingObject -> Occupyable r -> GameObject
@@ -117,6 +131,21 @@ move direction game =
             -- There is a block in the way
             ( _, Block, _ ) ->
                 Result.Err BlockedByBlock
+
+            ( Space s1, Space s2, Block ) ->
+                case s2.occupant of
+                    Just _ ->
+                        Result.Err BlockedByCrate
+
+                    Nothing ->
+                        Result.Ok
+                            { game
+                                | playerLocation = oneSpaceAway
+                                , grid =
+                                    game.grid
+                                        |> Matrix.set game.playerLocation (s1 |> empty)
+                                        |> Matrix.set oneSpaceAway (s2 |> occupyWith Player)
+                            }
 
             ( Space s1, Space s2, Space s3 ) ->
                 case ( s2.occupant, s3.occupant ) of

@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
-import Game exposing (GameObject(Block, Space), MovingObject(Player, Crate))
+import Game exposing (GameObject(Block, Space), MovingObject(Player, Crate), emptyGame)
 import Matrix
 
 
@@ -48,7 +48,7 @@ type alias Model =
 
 model : Model
 model =
-    { keysDown = Set.empty, game = Game.empty }
+    { keysDown = Set.empty, game = Game.emptyGame }
 
 
 init : ( Model, Cmd Msg )
@@ -180,8 +180,8 @@ printGameObject obj =
                         Just Game.Player ->
                             [ div
                                 [ style
-                                    [ ( "width", "15px" )
-                                    , ( "height", "15px" )
+                                    [ ( "width", "14px" )
+                                    , ( "height", "14px" )
                                     , ( "background-color", "red" )
                                     ]
                                 ]
@@ -191,8 +191,8 @@ printGameObject obj =
                         Just Game.Crate ->
                             [ div
                                 [ style
-                                    [ ( "width", "15px" )
-                                    , ( "height", "15px" )
+                                    [ ( "width", "14px" )
+                                    , ( "height", "14px" )
                                     , ( "background-color", "yellow" )
                                     ]
                                 ]
