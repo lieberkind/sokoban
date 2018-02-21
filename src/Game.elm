@@ -122,23 +122,16 @@ move direction game =
         twoSpacesAway =
             getAdjacentLocation oneSpaceAway direction
 
-        movePlayer : Occupyable r -> Occupyable r -> Game -> Game
-        movePlayer o1 o2 game =
-            { game
-                | playerLocation = oneSpaceAway
-                , grid =
-                    game.grid
-                        |> Matrix.set game.playerLocation (o1 |> empty)
-                        |> Matrix.set oneSpaceAway (o2 |> occupyWith Player)
-            }
+        movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
+        movePlayer o1 o2 grid =
+            grid
+                |> Matrix.set game.playerLocation (o1 |> empty)
+                |> Matrix.set oneSpaceAway (o2 |> occupyWith Player)
 
-        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Game -> Game
-        pushCrate o1 o2 o3 game =
-            let
-                newGame =
-                    movePlayer o1 o2 game
-            in
-                { newGame | grid = Matrix.set twoSpacesAway (o3 |> occupyWith Crate) newGame.grid }
+        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
+        pushCrate o1 o2 o3 grid =
+            movePlayer o1 o2 grid
+                |> Matrix.set twoSpacesAway (o3 |> occupyWith Crate)
     in
         case
             ( objectAt game.playerLocation game.grid
@@ -157,17 +150,17 @@ move direction game =
 
                     Nothing ->
                         Result.Ok
-                            (movePlayer s1 s2 game)
+                            { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 game.grid }
 
             ( Space s1, Space s2, Space s3 ) ->
                 case ( s2.occupant, s3.occupant ) of
                     ( Nothing, _ ) ->
                         Result.Ok
-                            (movePlayer s1 s2 game)
+                            { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 game.grid }
 
                     ( Just Crate, Nothing ) ->
                         Result.Ok
-                            (pushCrate s1 s2 s3 game)
+                            { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 game.grid }
 
                     ( Just Crate, Just _ ) ->
                         Result.Err BlockedByCrate
