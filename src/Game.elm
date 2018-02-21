@@ -1,6 +1,7 @@
 module Game
     exposing
-        ( Grid
+        ( Move
+        , Grid
         , Game
         , Direction(Left, Up, Right, Down)
         , GameObject(..)
@@ -11,7 +12,12 @@ module Game
         , hasWon
         )
 
-import Matrix exposing (..)
+import Matrix exposing (Matrix, Location)
+
+
+type Move
+    = Move
+    | Push
 
 
 type SpaceType
@@ -24,10 +30,8 @@ type MovingObject
     | Crate
 
 
-
--- Needing to have "kind" as a field in the record seems wrong. How do I fix that?
-
-
+{-| Needing to have "kind" as a field in the record seems wrong. How do I fix that?
+-}
 type GameObject
     = Block
     | Space { occupant : Maybe MovingObject, kind : SpaceType }
@@ -61,8 +65,12 @@ type alias Game =
     }
 
 
-emptyGame : Game
-emptyGame =
+
+-- EXPOSED MEMBERS
+
+
+emptyGame : () -> Game
+emptyGame _ =
     Game
         (Matrix.fromList
             [ [ Block, Block, Block, Block, Block, Block, Block ]
@@ -77,42 +85,7 @@ emptyGame =
         ( 2, 1 )
 
 
-occupyWith : MovingObject -> Occupyable r -> GameObject
-occupyWith obj r =
-    Space { kind = r.kind, occupant = Just obj }
-
-
-empty : Occupyable r -> GameObject
-empty r =
-    Space { kind = r.kind, occupant = Nothing }
-
-
-getAdjacentLocation : Location -> Direction -> Location
-getAdjacentLocation location direction =
-    let
-        ( row, col ) =
-            location
-    in
-        case direction of
-            Left ->
-                loc row (col - 1)
-
-            Up ->
-                loc (row - 1) col
-
-            Right ->
-                loc row (col + 1)
-
-            Down ->
-                loc (row + 1) col
-
-
-objectAt : Location -> Grid -> GameObject
-objectAt loc mat =
-    Matrix.get loc mat |> Maybe.withDefault Block
-
-
-move : Direction -> Game -> Result MoveError Game
+move : Direction -> Game -> Result MoveError ( Game, Move )
 move direction game =
     let
         grid : Grid
@@ -156,18 +129,24 @@ move direction game =
 
                     Nothing ->
                         Result.Ok
-                            { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            ( { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            , Move
+                            )
 
             -- There are two adjacent spaces, potentially occupied by crates
             ( Space s1, Space s2, Space s3 ) ->
                 case ( s2.occupant, s3.occupant ) of
                     ( Nothing, _ ) ->
                         Result.Ok
-                            { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            ( { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            , Move
+                            )
 
                     ( Just Crate, Nothing ) ->
                         Result.Ok
-                            { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 grid }
+                            ( { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 grid }
+                            , Push
+                            )
 
                     ( Just Crate, Just _ ) ->
                         Result.Err BlockedByCrate
@@ -177,6 +156,19 @@ move direction game =
 
             _ ->
                 Result.Err Impossible
+
+
+hasWon : Game -> Bool
+hasWon { grid } =
+    grid
+        |> Matrix.toList
+        |> List.foldr (++) []
+        |> List.filter isGoalField
+        |> List.all hasCrate
+
+
+
+-- HELPERS
 
 
 isGoalField : GameObject -> Bool
@@ -209,19 +201,36 @@ hasCrate obj =
             False
 
 
-hasWon : Grid -> Bool
-hasWon grid =
-    grid
-        |> Matrix.toList
-        |> flatten
-        |> List.filter isGoalField
-        |> List.all hasCrate
+occupyWith : MovingObject -> Occupyable r -> GameObject
+occupyWith obj r =
+    Space { kind = r.kind, occupant = Just obj }
 
 
+empty : Occupyable r -> GameObject
+empty r =
+    Space { kind = r.kind, occupant = Nothing }
 
--- HELPERS
+
+getAdjacentLocation : Location -> Direction -> Location
+getAdjacentLocation location direction =
+    let
+        ( row, col ) =
+            location
+    in
+        case direction of
+            Left ->
+                Matrix.loc row (col - 1)
+
+            Up ->
+                Matrix.loc (row - 1) col
+
+            Right ->
+                Matrix.loc row (col + 1)
+
+            Down ->
+                Matrix.loc (row + 1) col
 
 
-flatten : List (List a) -> List a
-flatten =
-    List.foldr (++) []
+objectAt : Location -> Grid -> GameObject
+objectAt loc mat =
+    Matrix.get loc mat |> Maybe.withDefault Block

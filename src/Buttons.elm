@@ -43,12 +43,18 @@ main =
 type alias Model =
     { keysDown : Set Int
     , game : Game.Game
+    , moves : Int
+    , pushes : Int
     }
 
 
 model : Model
 model =
-    { keysDown = Set.empty, game = Game.emptyGame }
+    { keysDown = Set.empty
+    , game = Game.emptyGame ()
+    , moves = 0
+    , pushes = 0
+    }
 
 
 init : ( Model, Cmd Msg )
@@ -115,7 +121,7 @@ update msg model =
                     | keysDown = insert keyCode model.keysDown
                     , game =
                         case Game.move (keyCodeToDirection keyCode) model.game of
-                            Result.Ok game ->
+                            Result.Ok ( game, _ ) ->
                                 game
 
                             _ ->
@@ -284,12 +290,16 @@ view model =
         [ printGrid model.game.grid
         , div []
             [ text
-                (if Game.hasWon model.game.grid then
+                (if Game.hasWon model.game then
                     "Game won"
                  else
                     "Game not won yet"
                 )
             ]
+        , div []
+            [ (toString model.moves) ++ " moves" |> text ]
+        , div []
+            [ (toString model.pushes) ++ " pushes" |> text ]
         , div [ class "undo-buttons" ]
             [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
             , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model
