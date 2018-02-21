@@ -282,6 +282,14 @@ view : Model -> Html Msg
 view model =
     div []
         [ printGrid model.game.grid
+        , div []
+            [ text
+                (if Game.hasWon model.game.grid then
+                    "Game won"
+                 else
+                    "Game not won yet"
+                )
+            ]
         , div [ class "undo-buttons" ]
             [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
             , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model

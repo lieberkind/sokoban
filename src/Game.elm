@@ -8,6 +8,7 @@ module Game
         , MovingObject(..)
         , emptyGame
         , move
+        , hasWon
         )
 
 import Matrix exposing (..)
@@ -176,3 +177,51 @@ move direction game =
 
             _ ->
                 Result.Err Impossible
+
+
+isGoalField : GameObject -> Bool
+isGoalField obj =
+    case obj of
+        Space { kind } ->
+            case kind of
+                GoalField ->
+                    True
+
+                _ ->
+                    False
+
+        _ ->
+            False
+
+
+hasCrate : GameObject -> Bool
+hasCrate obj =
+    case obj of
+        Space { occupant } ->
+            case occupant of
+                Just Crate ->
+                    True
+
+                _ ->
+                    False
+
+        _ ->
+            False
+
+
+hasWon : Grid -> Bool
+hasWon grid =
+    grid
+        |> Matrix.toList
+        |> flatten
+        |> List.filter isGoalField
+        |> List.all hasCrate
+
+
+
+-- HELPERS
+
+
+flatten : List (List a) -> List a
+flatten =
+    List.foldr (++) []
