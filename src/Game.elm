@@ -1,15 +1,15 @@
 module Game
     exposing
-        ( Move
+        ( Move(..)
         , Grid
         , Game
         , Direction(Left, Up, Right, Down)
         , GameObject(..)
         , SpaceType(..)
         , MovingObject(..)
-        , emptyGame
         , move
         , hasWon
+        , MoveError(..)
         )
 
 import Matrix exposing (Matrix, Location)
@@ -67,22 +67,6 @@ type alias Game =
 
 
 -- EXPOSED MEMBERS
-
-
-emptyGame : () -> Game
-emptyGame _ =
-    Game
-        (Matrix.fromList
-            [ [ Block, Block, Block, Block, Block, Block, Block ]
-            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
-            , [ Block, Space { occupant = Just Player, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
-            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Just Crate, kind = Path }, Space { occupant = Just Crate, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
-            , [ Block, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = GoalField }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
-            , [ Block, Space { occupant = Nothing, kind = GoalField }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Space { occupant = Nothing, kind = Path }, Block ]
-            , [ Block, Block, Block, Block, Block, Block, Block ]
-            ]
-        )
-        ( 2, 1 )
 
 
 move : Direction -> Game -> Result MoveError ( Game, Move )

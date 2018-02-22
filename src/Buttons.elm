@@ -6,8 +6,15 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
-import Game exposing (GameObject(Block, Space), MovingObject(Player, Crate), emptyGame)
+import Game
+    exposing
+        ( GameObject(Block, Space)
+        , MovingObject(Player, Crate)
+        , MoveError(..)
+        , Move(Move, Push)
+        )
 import Matrix
+import Level exposing (level0)
 
 
 keyCodes : { down : Int, l : Int, left : Int, m : Int, up : Int, right : Int }
@@ -45,15 +52,17 @@ type alias Model =
     , game : Game.Game
     , moves : Int
     , pushes : Int
+    , message : Maybe String
     }
 
 
 model : Model
 model =
     { keysDown = Set.empty
-    , game = Game.emptyGame ()
+    , game = Level.toGame level0
     , moves = 0
     , pushes = 0
+    , message = Just "Playing level 1..."
     }
 
 
@@ -67,12 +76,31 @@ init =
 
 
 type Msg
-    = KeyDown KeyCode
+    = Move Game.Direction
+    | UndoMove
+    | UndoLevel
+    | KeyDown KeyCode
     | KeyUp KeyCode
     | NoOp
 
 
 port undo : String -> Cmd msg
+
+
+getErrorMessage : MoveError -> String
+getErrorMessage err =
+    case err of
+        Impossible ->
+            "This should not happen..."
+
+        OutOfBounds ->
+            "How did you get here???"
+
+        BlockedByCrate ->
+            "{ooph...grumble}"
+
+        BlockedByBlock ->
+            "Ouch!"
 
 
 keyCodeToJSMsg : Msg -> String
@@ -115,32 +143,31 @@ keyCodeToDirection keyCode =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        KeyDown keyCode ->
-            if isKeyCodeRelevant keyCode then
-                ( { model
-                    | keysDown = insert keyCode model.keysDown
-                    , game =
-                        case Game.move (keyCodeToDirection keyCode) model.game of
-                            Result.Ok ( game, _ ) ->
-                                game
+        Move direction ->
+            case Game.move direction model.game of
+                Result.Ok ( game, moveType ) ->
+                    let
+                        newModel =
+                            { model
+                                | game = game
+                                , moves = model.moves + 1
+                                , pushes =
+                                    (case moveType of
+                                        Push ->
+                                            model.pushes + 1
 
-                            _ ->
-                                model.game
-                  }
-                , undo (keyCodeToJSMsg msg)
-                )
-            else
-                ( model, Cmd.none )
+                                        _ ->
+                                            model.pushes
+                                    )
+                                , message = Nothing
+                            }
+                    in
+                        ( newModel, Cmd.none )
 
-        KeyUp keyCode ->
-            if isKeyCodeRelevant keyCode then
-                ( { model
-                    | keysDown = remove keyCode model.keysDown
-                  }
-                , Cmd.none
-                )
-            else
-                ( model, Cmd.none )
+                Result.Err err ->
+                    ( { model | message = Just (getErrorMessage err) }
+                    , Cmd.none
+                    )
 
         _ ->
             ( model, Cmd.none )
@@ -186,9 +213,12 @@ printGameObject obj =
                         Just Game.Player ->
                             [ div
                                 [ style
-                                    [ ( "width", "14px" )
-                                    , ( "height", "14px" )
-                                    , ( "background-color", "red" )
+                                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
+                                    , ( "background-repeat", "no-repeat" )
+                                    , ( "background-size", "20px 20px" )
+                                    , ( "width", "20px" )
+                                    , ( "height", "20px" )
+                                    , ( "float", "left" )
                                     ]
                                 ]
                                 []
@@ -197,9 +227,12 @@ printGameObject obj =
                         Just Game.Crate ->
                             [ div
                                 [ style
-                                    [ ( "width", "14px" )
-                                    , ( "height", "14px" )
-                                    , ( "background-color", "yellow" )
+                                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
+                                    , ( "background-repeat", "no-repeat" )
+                                    , ( "background-size", "20px 20px" )
+                                    , ( "width", "20px" )
+                                    , ( "height", "20px" )
+                                    , ( "float", "left" )
                                     ]
                                 ]
                                 []
@@ -246,34 +279,6 @@ printGameObject obj =
                     []
 
 
-
--- Game.Crate ->
---     div
---         [ style
---             [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
---             , ( "background-repeat", "no-repeat" )
---             , ( "background-size", "20px 20px" )
---             , ( "background-color", "black" )
---             , ( "width", "20px" )
---             , ( "height", "20px" )
---             , ( "float", "left" )
---             ]
---         ]
---         []
--- Game.Player ->
---     div
---         [ style
---             [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
---             , ( "background-repeat", "no-repeat" )
---             , ( "background-size", "20px 20px" )
---             , ( "width", "20px" )
---             , ( "height", "20px" )
---             , ( "float", "left" )
---             ]
---         ]
---         []
-
-
 printGrid : Matrix.Matrix Game.GameObject -> Html Msg
 printGrid grid =
     let
@@ -300,6 +305,8 @@ view model =
             [ (toString model.moves) ++ " moves" |> text ]
         , div []
             [ (toString model.pushes) ++ " pushes" |> text ]
+        , div []
+            [ Maybe.withDefault "" model.message |> text ]
         , div [ class "undo-buttons" ]
             [ keyboardButton [ "undo-move" ] keyCodes.m "Undo Move (M)" model
             , keyboardButton [ "undo-level" ] keyCodes.l "Undo Level (L)" model
@@ -316,16 +323,29 @@ view model =
         ]
 
 
-
--- SUBSCRIPTIONS
-
-
 keyDownToMsg : KeyCode -> Msg
 keyDownToMsg keyCode =
-    if isKeyCodeRelevant keyCode then
-        KeyDown keyCode
-    else
-        NoOp
+    case keyCode of
+        37 ->
+            Move Game.Left
+
+        38 ->
+            Move Game.Up
+
+        39 ->
+            Move Game.Right
+
+        40 ->
+            Move Game.Down
+
+        76 ->
+            UndoLevel
+
+        77 ->
+            UndoMove
+
+        _ ->
+            NoOp
 
 
 keyUpToMsg : KeyCode -> Msg
@@ -338,7 +358,10 @@ keyUpToMsg keyCode =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Keyboard.downs keyDownToMsg
-        , Keyboard.ups keyUpToMsg
-        ]
+    if Game.hasWon model.game then
+        Sub.none
+    else
+        Sub.batch
+            [ Keyboard.downs keyDownToMsg
+            , Keyboard.ups keyUpToMsg
+            ]
