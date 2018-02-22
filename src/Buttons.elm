@@ -6,15 +6,21 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onMouseDown, onMouseUp)
 import Keyboard exposing (..)
-import Game
+import Data.GameElement
     exposing
-        ( GameObject(Block, Space)
+        ( GameElement(Block, Space)
         , MovingObject(Player, Crate)
-        , MoveError(..)
+        , SpaceType(Path, GoalField)
+        )
+import Data.Game as Game
+    exposing
+        ( MoveError(..)
         , Move(Move, Push)
+        , Game
+        , Direction(Left, Up, Right, Down)
         )
 import Matrix
-import Level exposing (level0)
+import Data.Level exposing (level0)
 
 
 keyCodes : { down : Int, l : Int, left : Int, m : Int, up : Int, right : Int }
@@ -49,7 +55,7 @@ main =
 
 type alias Model =
     { keysDown : Set Int
-    , game : Game.Game
+    , game : Game
     , moves : Int
     , pushes : Int
     , message : Maybe String
@@ -59,7 +65,7 @@ type alias Model =
 model : Model
 model =
     { keysDown = Set.empty
-    , game = Level.toGame level0
+    , game = Game.fromLevel level0
     , moves = 0
     , pushes = 0
     , message = Just "Playing level 1..."
@@ -76,7 +82,7 @@ init =
 
 
 type Msg
-    = Move Game.Direction
+    = Move Direction
     | UndoMove
     | UndoLevel
     | KeyDown KeyCode
@@ -126,18 +132,18 @@ keyCodeToJSMsg msg =
             "NOOP"
 
 
-keyCodeToDirection : Int -> Game.Direction
+keyCodeToDirection : Int -> Direction
 keyCodeToDirection keyCode =
     if keyCode == keyCodes.left then
-        Game.Left
+        Left
     else if keyCode == keyCodes.up then
-        Game.Up
+        Up
     else if keyCode == keyCodes.right then
-        Game.Right
+        Right
     else if keyCode == keyCodes.down then
-        Game.Down
+        Down
     else
-        Game.Down
+        Down
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -196,21 +202,21 @@ keyboardButton classes keyCode label model =
             [ text label ]
 
 
-printGameObject : GameObject -> Html Msg
+printGameObject : GameElement -> Html Msg
 printGameObject obj =
     let
-        renderOccupant : GameObject -> List (Html Msg)
+        renderOccupant : GameElement -> List (Html Msg)
         renderOccupant obj =
             case obj of
-                Game.Block ->
+                Block ->
                     []
 
-                Game.Space s ->
+                Space s ->
                     case s.occupant of
                         Nothing ->
                             []
 
-                        Just Game.Player ->
+                        Just Player ->
                             [ div
                                 [ style
                                     [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
@@ -224,7 +230,7 @@ printGameObject obj =
                                 []
                             ]
 
-                        Just Game.Crate ->
+                        Just Crate ->
                             [ div
                                 [ style
                                     [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
@@ -239,9 +245,9 @@ printGameObject obj =
                             ]
     in
         case obj of
-            Game.Space s ->
+            Space s ->
                 case s.kind of
-                    Game.GoalField ->
+                    GoalField ->
                         div
                             [ style
                                 [ ( "background-size", "20px 20px" )
@@ -253,7 +259,7 @@ printGameObject obj =
                             ]
                             (renderOccupant obj)
 
-                    Game.Path ->
+                    Path ->
                         div
                             [ style
                                 [ ( "background-size", "20px 20px" )
@@ -265,7 +271,7 @@ printGameObject obj =
                             ]
                             (renderOccupant obj)
 
-            Game.Block ->
+            Block ->
                 div
                     [ style
                         [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
@@ -279,10 +285,10 @@ printGameObject obj =
                     []
 
 
-printGrid : Matrix.Matrix Game.GameObject -> Html Msg
+printGrid : Matrix.Matrix GameElement -> Html Msg
 printGrid grid =
     let
-        printRow : List GameObject -> Html Msg
+        printRow : List GameElement -> Html Msg
         printRow objects =
             div [ style [ ( "overflow", "hidden" ) ] ] (List.map printGameObject objects)
     in
@@ -292,7 +298,7 @@ printGrid grid =
 view : Model -> Html Msg
 view model =
     div []
-        [ printGrid model.game.grid
+        [ printGrid (Game.grid model.game)
         , div []
             [ text
                 (if Game.hasWon model.game then
@@ -327,16 +333,16 @@ keyDownToMsg : KeyCode -> Msg
 keyDownToMsg keyCode =
     case keyCode of
         37 ->
-            Move Game.Left
+            Move Left
 
         38 ->
-            Move Game.Up
+            Move Up
 
         39 ->
-            Move Game.Right
+            Move Right
 
         40 ->
-            Move Game.Down
+            Move Down
 
         76 ->
             UndoLevel

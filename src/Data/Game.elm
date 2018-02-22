@@ -1,44 +1,24 @@
-module Game
+module Data.Game
     exposing
         ( Move(..)
         , Grid
         , Game
         , Direction(Left, Up, Right, Down)
-        , GameObject(..)
-        , SpaceType(..)
-        , MovingObject(..)
+        , MoveError(..)
         , move
         , hasWon
-        , MoveError(..)
+        , fromLevel
+        , grid
         )
 
 import Matrix exposing (Matrix, Location)
+import Data.Level exposing (Level)
+import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
 
 
 type Move
     = Move
     | Push
-
-
-type SpaceType
-    = GoalField
-    | Path
-
-
-type MovingObject
-    = Player
-    | Crate
-
-
-{-| Needing to have "kind" as a field in the record seems wrong. How do I fix that?
--}
-type GameObject
-    = Block
-    | Space { occupant : Maybe MovingObject, kind : SpaceType }
-
-
-type alias Occupyable r =
-    { r | occupant : Maybe MovingObject, kind : SpaceType }
 
 
 type Direction
@@ -56,21 +36,31 @@ type MoveError
 
 
 type alias Grid =
-    Matrix GameObject
+    Matrix GameElement
 
 
-type alias Game =
-    { grid : Grid
-    , playerLocation : Location
-    }
+type Game
+    = Game { grid : Grid, playerLocation : Location }
 
 
-
--- EXPOSED MEMBERS
+{-| The only way to instantiate a new game. Should contain validation of
+the passed level to make sure that it's "correct"
+-}
+fromLevel : Level -> Game
+fromLevel lvl =
+    let
+        fromStrings : List String -> Grid
+        fromStrings strs =
+            strs
+                |> List.map (String.split "")
+                |> Matrix.fromList
+                |> Matrix.map Element.fromString
+    in
+        Game { lvl | grid = (fromStrings lvl.grid) }
 
 
 move : Direction -> Game -> Result MoveError ( Game, Move )
-move direction game =
+move direction (Game game) =
     let
         grid : Grid
         grid =
@@ -87,18 +77,18 @@ move direction game =
         movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
         movePlayer o1 o2 grid =
             grid
-                |> Matrix.set game.playerLocation (empty o1)
-                |> Matrix.set oneSpaceAway (occupyWith Player o2)
+                |> Matrix.set game.playerLocation (Element.deoccupy o1)
+                |> Matrix.set oneSpaceAway (Element.occupyWith Player o2)
 
         pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
         pushCrate o1 o2 o3 grid =
             movePlayer o1 o2 grid
-                |> Matrix.set twoSpacesAway (occupyWith Crate o3)
+                |> Matrix.set twoSpacesAway (Element.occupyWith Crate o3)
     in
         case
-            ( objectAt game.playerLocation grid
-            , objectAt oneSpaceAway grid
-            , objectAt twoSpacesAway grid
+            ( elementAt game.playerLocation grid
+            , elementAt oneSpaceAway grid
+            , elementAt twoSpacesAway grid
             )
         of
             -- There is a block in the way
@@ -113,7 +103,7 @@ move direction game =
 
                     Nothing ->
                         Result.Ok
-                            ( { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            ( Game { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
                             , Move
                             )
 
@@ -122,13 +112,13 @@ move direction game =
                 case ( s2.occupant, s3.occupant ) of
                     ( Nothing, _ ) ->
                         Result.Ok
-                            ( { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
+                            ( Game { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
                             , Move
                             )
 
                     ( Just Crate, Nothing ) ->
                         Result.Ok
-                            ( { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 grid }
+                            ( Game { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 grid }
                             , Push
                             )
 
@@ -143,56 +133,21 @@ move direction game =
 
 
 hasWon : Game -> Bool
-hasWon { grid } =
+hasWon (Game { grid }) =
     grid
         |> Matrix.toList
         |> List.foldr (++) []
-        |> List.filter isGoalField
-        |> List.all hasCrate
+        |> List.filter Element.isGoalField
+        |> List.all Element.hasCrate
+
+
+grid : Game -> Grid
+grid (Game { grid }) =
+    grid
 
 
 
 -- HELPERS
-
-
-isGoalField : GameObject -> Bool
-isGoalField obj =
-    case obj of
-        Space { kind } ->
-            case kind of
-                GoalField ->
-                    True
-
-                _ ->
-                    False
-
-        _ ->
-            False
-
-
-hasCrate : GameObject -> Bool
-hasCrate obj =
-    case obj of
-        Space { occupant } ->
-            case occupant of
-                Just Crate ->
-                    True
-
-                _ ->
-                    False
-
-        _ ->
-            False
-
-
-occupyWith : MovingObject -> Occupyable r -> GameObject
-occupyWith obj r =
-    Space { kind = r.kind, occupant = Just obj }
-
-
-empty : Occupyable r -> GameObject
-empty r =
-    Space { kind = r.kind, occupant = Nothing }
 
 
 getAdjacentLocation : Location -> Direction -> Location
@@ -215,6 +170,6 @@ getAdjacentLocation location direction =
                 Matrix.loc (row + 1) col
 
 
-objectAt : Location -> Grid -> GameObject
-objectAt loc mat =
-    Matrix.get loc mat |> Maybe.withDefault Block
+elementAt : Location -> Grid -> GameElement
+elementAt loc grid =
+    Matrix.get loc grid |> Maybe.withDefault Block
