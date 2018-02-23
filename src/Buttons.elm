@@ -15,10 +15,12 @@ import Data.GameElement
 import Data.Game as Game
     exposing
         ( MoveError(..)
-        , Move(Move, Push)
+        , Movement(Move, Push)
         , Game
         , Direction(Left, Up, Right, Down)
+        , isPush
         )
+import Views.GameElement exposing (renderGameElement)
 import Matrix
 import Data.Level exposing (level0)
 
@@ -158,13 +160,10 @@ update msg model =
                                 | game = game
                                 , moves = model.moves + 1
                                 , pushes =
-                                    (case moveType of
-                                        Push ->
-                                            model.pushes + 1
-
-                                        _ ->
-                                            model.pushes
-                                    )
+                                    if Game.isPush moveType then
+                                        model.pushes + 1
+                                    else
+                                        model.pushes
                                 , message = Nothing
                             }
                     in
@@ -202,95 +201,12 @@ keyboardButton classes keyCode label model =
             [ text label ]
 
 
-printGameObject : GameElement -> Html Msg
-printGameObject obj =
-    let
-        renderOccupant : GameElement -> List (Html Msg)
-        renderOccupant obj =
-            case obj of
-                Block ->
-                    []
-
-                Space s ->
-                    case s.occupant of
-                        Nothing ->
-                            []
-
-                        Just Player ->
-                            [ div
-                                [ style
-                                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
-                                    , ( "background-repeat", "no-repeat" )
-                                    , ( "background-size", "20px 20px" )
-                                    , ( "width", "20px" )
-                                    , ( "height", "20px" )
-                                    , ( "float", "left" )
-                                    ]
-                                ]
-                                []
-                            ]
-
-                        Just Crate ->
-                            [ div
-                                [ style
-                                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA')" )
-                                    , ( "background-repeat", "no-repeat" )
-                                    , ( "background-size", "20px 20px" )
-                                    , ( "width", "20px" )
-                                    , ( "height", "20px" )
-                                    , ( "float", "left" )
-                                    ]
-                                ]
-                                []
-                            ]
-    in
-        case obj of
-            Space s ->
-                case s.kind of
-                    GoalField ->
-                        div
-                            [ style
-                                [ ( "background-size", "20px 20px" )
-                                , ( "background-color", "black" )
-                                , ( "width", "20px" )
-                                , ( "height", "20px" )
-                                , ( "float", "left" )
-                                ]
-                            ]
-                            (renderOccupant obj)
-
-                    Path ->
-                        div
-                            [ style
-                                [ ( "background-size", "20px 20px" )
-                                , ( "background-color", "cyan" )
-                                , ( "width", "20px" )
-                                , ( "height", "20px" )
-                                , ( "float", "left" )
-                                ]
-                            ]
-                            (renderOccupant obj)
-
-            Block ->
-                div
-                    [ style
-                        [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA')" )
-                        , ( "background-repeat", "no-repeat" )
-                        , ( "background-size", "20px 20px" )
-                        , ( "width", "20px" )
-                        , ( "height", "20px" )
-                        , ( "float", "left" )
-                        ]
-                    ]
-                    []
-
-
 printGrid : Matrix.Matrix GameElement -> Html Msg
 printGrid grid =
     let
         printRow : List GameElement -> Html Msg
         printRow objects =
-            div [ style [ ( "overflow", "hidden" ) ] ] (List.map printGameObject objects)
+            div [ style [ ( "overflow", "hidden" ) ] ] (List.map renderGameElement objects)
     in
         div [ class "grid" ] (List.map printRow (Matrix.toList grid))
 

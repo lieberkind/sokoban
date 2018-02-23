@@ -1,24 +1,20 @@
 module Data.Game
     exposing
-        ( Move(..)
-        , Grid
+        ( Grid
         , Game
+        , Movement(..)
         , Direction(Left, Up, Right, Down)
         , MoveError(..)
         , move
         , hasWon
         , fromLevel
         , grid
+        , isPush
         )
 
 import Matrix exposing (Matrix, Location)
 import Data.Level exposing (Level)
 import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
-
-
-type Move
-    = Move
-    | Push
 
 
 type Direction
@@ -59,7 +55,7 @@ fromLevel lvl =
         Game { lvl | grid = (fromStrings lvl.grid) }
 
 
-move : Direction -> Game -> Result MoveError ( Game, Move )
+move : Direction -> Game -> Result MoveError ( Game, Movement )
 move direction (Game game) =
     let
         grid : Grid
@@ -144,6 +140,25 @@ hasWon (Game { grid }) =
 grid : Game -> Grid
 grid (Game { grid }) =
     grid
+
+
+
+-- MOVEMENT
+
+
+type Movement
+    = Move
+    | Push
+
+
+isPush : Movement -> Bool
+isPush movement =
+    case movement of
+        Push ->
+            True
+
+        _ ->
+            False
 
 
 
