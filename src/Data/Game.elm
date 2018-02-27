@@ -1,190 +1,129 @@
 module Data.Game
     exposing
-        ( Grid
-        , Game
-        , Movement(..)
-        , Direction(Left, Up, Right, Down)
-        , MoveError(..)
+        ( Game
+        , advanceLevel
+        , initialise
+        , isOver
         , move
-        , hasWon
-        , fromLevel
-        , grid
-        , isPush
+        , reset
+        , undoLevel
+        , undoMove
         )
 
-import Matrix exposing (Matrix, Location)
-import Data.Level exposing (Level)
-import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
-
-
-type Direction
-    = Left
-    | Up
-    | Right
-    | Down
-
-
-type MoveError
-    = BlockedByCrate
-    | BlockedByBlock
-    | OutOfBounds
-    | Impossible
-
-
-type alias Grid =
-    Matrix GameElement
+import SelectList exposing (SelectList, Position(..))
+import Data.Level as Level exposing (..)
+import Data.LevelTemplate exposing (LevelTemplate)
+import Data.Movement exposing (Direction, MoveError(..))
 
 
 type Game
-    = Game { grid : Grid, playerLocation : Location }
+    = Playing (SelectList Level)
+    | LevelWon (SelectList Level)
+    | GameOver (SelectList Level)
 
 
-{-| The only way to instantiate a new game. Should contain validation of
-the passed level to make sure that it's "correct"
--}
-fromLevel : Level -> Game
-fromLevel lvl =
-    let
-        fromStrings : List String -> Grid
-        fromStrings strs =
-            strs
-                |> List.map (String.split "")
-                |> Matrix.fromList
-                |> Matrix.map Element.fromString
-    in
-        Game { lvl | grid = (fromStrings lvl.grid) }
+initialise : SelectList LevelTemplate -> Game
+initialise =
+    Playing << SelectList.map Level.fromTemplate
 
 
-move : Direction -> Game -> Result MoveError ( Game, Movement )
-move direction (Game game) =
-    let
-        grid : Grid
-        grid =
-            game.grid
-
-        oneSpaceAway : Location
-        oneSpaceAway =
-            getAdjacentLocation game.playerLocation direction
-
-        twoSpacesAway : Location
-        twoSpacesAway =
-            getAdjacentLocation oneSpaceAway direction
-
-        movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
-        movePlayer o1 o2 grid =
-            grid
-                |> Matrix.set game.playerLocation (Element.deoccupy o1)
-                |> Matrix.set oneSpaceAway (Element.occupyWith Player o2)
-
-        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
-        pushCrate o1 o2 o3 grid =
-            movePlayer o1 o2 grid
-                |> Matrix.set twoSpacesAway (Element.occupyWith Crate o3)
-    in
-        case
-            ( elementAt game.playerLocation grid
-            , elementAt oneSpaceAway grid
-            , elementAt twoSpacesAway grid
-            )
-        of
-            -- There is a block in the way
-            ( _, Block, _ ) ->
-                Result.Err BlockedByBlock
-
-            -- There's a block two spaces away
-            ( Space s1, Space s2, Block ) ->
-                case s2.occupant of
-                    Just _ ->
-                        Result.Err BlockedByCrate
-
-                    Nothing ->
-                        Result.Ok
-                            ( Game { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
-                            , Move
-                            )
-
-            -- There are two adjacent spaces, potentially occupied by crates
-            ( Space s1, Space s2, Space s3 ) ->
-                case ( s2.occupant, s3.occupant ) of
-                    ( Nothing, _ ) ->
-                        Result.Ok
-                            ( Game { game | playerLocation = oneSpaceAway, grid = movePlayer s1 s2 grid }
-                            , Move
-                            )
-
-                    ( Just Crate, Nothing ) ->
-                        Result.Ok
-                            ( Game { game | playerLocation = oneSpaceAway, grid = pushCrate s1 s2 s3 grid }
-                            , Push
-                            )
-
-                    ( Just Crate, Just _ ) ->
-                        Result.Err BlockedByCrate
-
+move : Direction -> Game -> Result MoveError Game
+move dir game =
+    case game of
+        Playing lvls ->
+            let
+                lvl =
+                    SelectList.selected lvls
+            in
+                case Level.move dir lvl of
                     _ ->
-                        Result.Err Impossible
+                        Result.Ok game
 
-            _ ->
-                Result.Err Impossible
+                    Result.Err err ->
+                        Result.Err err
 
+        LevelWon _ ->
+            Result.Ok game
 
-hasWon : Game -> Bool
-hasWon (Game { grid }) =
-    grid
-        |> Matrix.toList
-        |> List.foldr (++) []
-        |> List.filter Element.isGoalField
-        |> List.all Element.hasCrate
+        GameOver _ ->
+            Result.Ok game
 
 
-grid : Game -> Grid
-grid (Game { grid }) =
-    grid
+reset : Game -> Game
+reset game =
+    case game of
+        Playing lvls ->
+            Playing (resetSelectList lvls)
+
+        LevelWon lvls ->
+            Playing (resetSelectList lvls)
+
+        GameOver lvls ->
+            Playing (resetSelectList lvls)
 
 
+undoMove : Game -> Game
+undoMove game =
+    case game of
+        Playing lvls ->
+            Playing (updateSelected Level.undo lvls)
 
--- MOVEMENT
+        LevelWon lvls ->
+            game
+
+        GameOver _ ->
+            game
 
 
-type Movement
-    = Move
-    | Push
+undoLevel : Game -> Game
+undoLevel game =
+    case game of
+        Playing lvls ->
+            Playing (updateSelected Level.reset lvls)
+
+        LevelWon lvls ->
+            Playing (updateSelected Level.reset lvls)
+
+        GameOver _ ->
+            game
 
 
-isPush : Movement -> Bool
-isPush movement =
-    case movement of
-        Push ->
-            True
-
-        _ ->
-            False
+advanceLevel : Game -> Game
+advanceLevel game =
+    game
 
 
 
 -- HELPERS
 
 
-getAdjacentLocation : Location -> Direction -> Location
-getAdjacentLocation location direction =
-    let
-        ( row, col ) =
-            location
-    in
-        case direction of
-            Left ->
-                Matrix.loc row (col - 1)
-
-            Up ->
-                Matrix.loc (row - 1) col
-
-            Right ->
-                Matrix.loc row (col + 1)
-
-            Down ->
-                Matrix.loc (row + 1) col
+isOver : Game -> Bool
+isOver game =
+    False
 
 
-elementAt : Location -> Grid -> GameElement
-elementAt loc grid =
-    Matrix.get loc grid |> Maybe.withDefault Block
+resetSelectList : SelectList a -> SelectList a
+resetSelectList ls =
+    case (SelectList.before ls) of
+        [] ->
+            SelectList.fromLists [] (SelectList.selected ls) (SelectList.after ls)
+
+        x :: xs ->
+            let
+                rest =
+                    xs
+                        |> List.append [ SelectList.selected ls ]
+                        |> List.append (SelectList.after ls)
+            in
+                SelectList.fromLists [] x rest
+
+
+updateSelected : (a -> a) -> SelectList a -> SelectList a
+updateSelected fn =
+    SelectList.mapBy
+        (\pos a ->
+            if pos == Selected then
+                fn a
+            else
+                a
+        )
