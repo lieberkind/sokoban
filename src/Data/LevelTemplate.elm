@@ -4,12 +4,13 @@ import Matrix exposing (Location)
 
 
 type alias LevelTemplate =
-    { grid : List String, playerLocation : Location }
+    { levelNumber : Int, grid : List String, playerLocation : Location }
 
 
 level0 : LevelTemplate
 level0 =
-    { grid =
+    { levelNumber = 0
+    , grid =
         [ "###################"
         , "###################"
         , "###################"
@@ -29,4 +30,30 @@ level0 =
         , "###################"
         ]
     , playerLocation = ( 9, 6 )
+    }
+
+
+level1 : LevelTemplate
+level1 =
+    { levelNumber = 1
+    , grid =
+        [ "###################"
+        , "###################"
+        , "###################"
+        , "#####...###########"
+        , "#####c..###########"
+        , "#####..c###########"
+        , "###..c.c.##########"
+        , "###.#.##.##########"
+        , "#...#.##.#####..xx#"
+        , "#.c..c..........xx#"
+        , "#####.###.#p##..xx#"
+        , "#####.....#########"
+        , "###################"
+        , "###################"
+        , "###################"
+        , "###################"
+        , "###################"
+        ]
+    , playerLocation = ( 10, 11 )
     }

@@ -3,7 +3,7 @@ port module Main exposing (..)
 import List
 import Set exposing (Set, insert, remove)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, style, attribute)
+import Html.Attributes exposing (class, classList, style, attribute, href)
 import Html.Events exposing (onMouseDown, onMouseUp, onClick)
 import Keyboard exposing (..)
 import Data.GameElement
@@ -15,8 +15,10 @@ import Data.GameElement
 import Data.Level as Level exposing (Level)
 import Views.GameElement exposing (renderGameElement)
 import Matrix
-import Data.LevelTemplate exposing (level0)
+import Data.LevelTemplate exposing (level0, level1)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
+import Data.Game as Game exposing (Game(..))
+import SelectList exposing (SelectList)
 
 
 main : Program Never Model Msg
@@ -35,17 +37,24 @@ main =
 
 type alias Model =
     { keysDown : Set Int
-    , level : Level
+    , game : Game
     , message : Maybe String
     }
 
 
 model : Model
 model =
-    { keysDown = Set.empty
-    , level = Level.fromTemplate level0
-    , message = Just "Playing level 0..."
-    }
+    let
+        game =
+            Game.initialise (SelectList.fromLists [] level0 [ level1 ])
+
+        levelNumber =
+            game |> Game.currentLevel |> .number
+    in
+        { keysDown = Set.empty
+        , game = game
+        , message = Just ("Playing level " ++ toString levelNumber ++ "...")
+        }
 
 
 init : ( Model, Cmd Msg )
@@ -61,9 +70,10 @@ type Msg
     = Move Direction
     | UndoMove
     | UndoLevel
+    | StartOver
     | KeyDown KeyCode
     | KeyUp KeyCode
-    | LoadLevel Int
+    | AdvanceLevel
     | NoOp
 
 
@@ -90,12 +100,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Move direction ->
-            case Level.move direction model.level of
-                Result.Ok level ->
+            case Game.move direction model.game of
+                Result.Ok game ->
                     let
                         newModel =
                             { model
-                                | level = level
+                                | game = game
                                 , message = Nothing
                             }
                     in
@@ -107,10 +117,30 @@ update msg model =
                     )
 
         UndoMove ->
-            ( { model | level = Level.undo model.level }, Cmd.none )
+            ( { model | game = Game.undoMove model.game, message = Just "Whew! That was close!" }, Cmd.none )
 
         UndoLevel ->
-            ( { model | level = Level.reset model.level }, Cmd.none )
+            ( { model | game = Game.undoLevel model.game, message = Just "Not so easy, is it?" }, Cmd.none )
+
+        AdvanceLevel ->
+            let
+                newGame =
+                    Game.advanceLevel model.game
+
+                newMessage =
+                    "Playing level " ++ (newGame |> Game.currentLevel |> .number |> toString) ++ "..."
+            in
+                ( { model | game = newGame, message = Just newMessage }, Cmd.none )
+
+        StartOver ->
+            let
+                newGame =
+                    Game.reset model.game
+
+                newMessage =
+                    "Playing level " ++ (newGame |> Game.currentLevel |> .number |> toString) ++ "..."
+            in
+                ( { model | game = newGame, message = Just newMessage }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -147,49 +177,70 @@ printGrid grid =
 
 
 view : Model -> Html Msg
-view { level, message } =
-    div [ style [ ( "position", "relative" ) ] ]
-        [ div
-            [ class "popup"
-            , attribute "popup" ""
-            ]
-            [ p
-                [ attribute "popup-text" "" ]
-                [ text "You completed level 0"
-                , br [] []
-                , text "with 21 moves"
-                , br [] []
-                , text "and 7 pushes"
+view { game, message } =
+    let
+        level =
+            Game.currentLevel game
+    in
+        div []
+            [ h1 [ class "title" ] [ text "Sokoban" ]
+            , div [ class "level-status" ]
+                [ span [ class "level" ] [ text ("Level " ++ toString (level.number)) ]
+                , span [] [ text " - " ]
+                , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
                 ]
-            , button
-                [ attribute "dismiss-popup" ""
-                , class "keyboard-button dismiss-popup"
+            , div [ style [ ( "position", "relative" ) ] ]
+                [ div
+                    [ classList
+                        [ ( "popup", True )
+                        , ( "visible", Game.levelWon game )
+                        ]
+                    , attribute "popup" ""
+                    ]
+                    [ p
+                        [ attribute "popup-text" "" ]
+                        [ text "You completed level 0"
+                        , br [] []
+                        , text "with 21 moves"
+                        , br [] []
+                        , text "and 7 pushes"
+                        ]
+                    , button
+                        [ attribute "dismiss-popup" ""
+                        , class "keyboard-button dismiss-popup"
+                        ]
+                        [ text "OK" ]
+                    , button
+                        [ attribute "dismiss-popup" ""
+                        , class "keyboard-button dismiss-popup"
+                        , onClick AdvanceLevel
+                        ]
+                        [ text "OK" ]
+                    ]
+                , printGrid (Level.grid level)
+                , div [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
+                    [ div []
+                        [ (toString (Level.moves level)) ++ " moves" |> text ]
+                    , div []
+                        [ (toString (Level.pushes level)) ++ " pushes" |> text ]
+                    , div []
+                        [ Maybe.withDefault "" message |> text ]
+                    ]
+                , div [ class "undo-buttons" ]
+                    [ keyboardButton [ "undo-move" ] UndoMove "Undo Move (M)"
+                    , keyboardButton [ "undo-level" ] UndoLevel "Undo Level (L)"
+                    ]
+                , div [ class "arrow-buttons" ]
+                    [ div [ class "top-row" ]
+                        [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Up) "▲" ]
+                    , div [ class "bottom-row" ]
+                        [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Left) "◀"
+                        , keyboardButton [ "arrow-button", "down-arrow" ] (Move Down) "▼"
+                        , keyboardButton [ "arrow-button", "right-arrow" ] (Move Right) "▶"
+                        ]
+                    ]
                 ]
-                [ text "OK" ]
             ]
-        , printGrid (Level.grid level)
-        , div [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
-            [ div []
-                [ (toString (Level.moves level)) ++ " moves" |> text ]
-            , div []
-                [ (toString (Level.pushes level)) ++ " pushes" |> text ]
-            , div []
-                [ Maybe.withDefault "" message |> text ]
-            ]
-        , div [ class "undo-buttons" ]
-            [ keyboardButton [ "undo-move" ] UndoMove "Undo Move (M)"
-            , keyboardButton [ "undo-level" ] UndoLevel "Undo Level (L)"
-            ]
-        , div [ class "arrow-buttons" ]
-            [ div [ class "top-row" ]
-                [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Up) "▲" ]
-            , div [ class "bottom-row" ]
-                [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Left) "◀"
-                , keyboardButton [ "arrow-button", "down-arrow" ] (Move Down) "▼"
-                , keyboardButton [ "arrow-button", "right-arrow" ] (Move Right) "▶"
-                ]
-            ]
-        ]
 
 
 
@@ -227,11 +278,13 @@ keyUpToMsg keyCode =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { level } =
-    if Level.hasWon level then
-        Sub.none
-    else
-        Sub.batch
-            [ Keyboard.downs keyCodeToMsg
-            , Keyboard.ups keyUpToMsg
-            ]
+subscriptions { game } =
+    case game of
+        Playing _ ->
+            Sub.batch
+                [ Keyboard.downs keyCodeToMsg
+                , Keyboard.ups keyUpToMsg
+                ]
+
+        _ ->
+            Sub.none

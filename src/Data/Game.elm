@@ -1,9 +1,11 @@
 module Data.Game
     exposing
-        ( Game
+        ( Game(..)
         , advanceLevel
+        , currentLevel
         , initialise
         , isOver
+        , levelWon
         , move
         , reset
         , undoLevel
@@ -36,8 +38,20 @@ move dir game =
                     SelectList.selected lvls
             in
                 case Level.move dir lvl of
-                    _ ->
-                        Result.Ok game
+                    Result.Ok lvl ->
+                        let
+                            updated =
+                                (updateSelected (\_ -> lvl) lvls)
+                        in
+                            case ( Level.hasWon lvl, hasMore lvls ) of
+                                ( True, True ) ->
+                                    Result.Ok <| LevelWon updated
+
+                                ( True, False ) ->
+                                    Result.Ok <| GameOver updated
+
+                                _ ->
+                                    Result.Ok <| Playing updated
 
                     Result.Err err ->
                         Result.Err err
@@ -53,13 +67,13 @@ reset : Game -> Game
 reset game =
     case game of
         Playing lvls ->
-            Playing (resetSelectList lvls)
+            Playing (resetSelectList lvls |> SelectList.map Level.reset)
 
         LevelWon lvls ->
-            Playing (resetSelectList lvls)
+            Playing (resetSelectList lvls |> SelectList.map Level.reset)
 
         GameOver lvls ->
-            Playing (resetSelectList lvls)
+            Playing (resetSelectList lvls |> SelectList.map Level.reset)
 
 
 undoMove : Game -> Game
@@ -88,13 +102,58 @@ undoLevel game =
             game
 
 
+currentLevel : Game -> Level
+currentLevel game =
+    case game of
+        Playing lvls ->
+            SelectList.selected lvls
+
+        LevelWon lvls ->
+            SelectList.selected lvls
+
+        GameOver lvls ->
+            SelectList.selected lvls
+
+
 advanceLevel : Game -> Game
 advanceLevel game =
-    game
+    case game of
+        LevelWon lvls ->
+            case (SelectList.after lvls) of
+                [] ->
+                    GameOver lvls
+
+                next :: rest ->
+                    Playing
+                        (SelectList.fromLists
+                            (SelectList.before lvls
+                                |> List.append [ SelectList.selected lvls ]
+                            )
+                            next
+                            rest
+                        )
+
+        _ ->
+            game
+
+
+levelWon : Game -> Bool
+levelWon game =
+    case game of
+        LevelWon _ ->
+            True
+
+        _ ->
+            False
 
 
 
 -- HELPERS
+
+
+hasMore : SelectList a -> Bool
+hasMore =
+    not << List.isEmpty << SelectList.after
 
 
 isOver : Game -> Bool

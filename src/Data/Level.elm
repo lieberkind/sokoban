@@ -31,7 +31,8 @@ type alias LevelState =
 
 
 type alias Level =
-    { initial : LevelState
+    { number : Int
+    , initial : LevelState
     , previous : Maybe LevelState
     , current : LevelState
     }
@@ -53,7 +54,7 @@ fromTemplate tmpl =
         levelState =
             { grid = (fromStrings tmpl.grid), playerLocation = tmpl.playerLocation, moves = 0, pushes = 0 }
     in
-        { current = levelState, initial = levelState, previous = Nothing }
+        { current = levelState, initial = levelState, previous = Nothing, number = tmpl.levelNumber }
 
 
 hasWon : Level -> Bool
@@ -163,14 +164,6 @@ move direction level =
 
             _ ->
                 Result.Err Impossible
-
-
-canUndo : Level -> Bool
-canUndo lvl =
-    if lvl.previous == Nothing then
-        False
-    else
-        True
 
 
 undo : Level -> Level
