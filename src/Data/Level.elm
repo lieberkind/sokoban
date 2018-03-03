@@ -2,11 +2,12 @@ module Data.Level
     exposing
         ( Grid
         , Level
-        , move
-        , moves
-        , hasWon
         , fromTemplate
         , grid
+        , hasWon
+        , move
+        , moves
+        , number
         , pushes
         , reset
         , undo
@@ -189,6 +190,11 @@ moves lvl =
 pushes : Level -> Int
 pushes lvl =
     lvl.current.pushes
+
+
+number : Level -> Int
+number lvl =
+    lvl.number
 
 
 

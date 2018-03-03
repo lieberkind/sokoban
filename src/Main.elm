@@ -49,7 +49,7 @@ model =
             Game.initialise (SelectList.fromLists [] level0 [ level1 ])
 
         levelNumber =
-            game |> Game.currentLevel |> .number
+            game |> Game.currentLevel |> Level.number
     in
         { keysDown = Set.empty
         , game = game
@@ -128,7 +128,7 @@ update msg model =
                     Game.advanceLevel model.game
 
                 newMessage =
-                    "Playing level " ++ (newGame |> Game.currentLevel |> .number |> toString) ++ "..."
+                    "Playing level " ++ (newGame |> Game.currentLevel |> Level.number |> toString) ++ "..."
             in
                 ( { model | game = newGame, message = Just newMessage }, Cmd.none )
 
@@ -138,7 +138,7 @@ update msg model =
                     Game.reset model.game
 
                 newMessage =
-                    "Playing level " ++ (newGame |> Game.currentLevel |> .number |> toString) ++ "..."
+                    "Playing level " ++ (newGame |> Game.currentLevel |> Level.number |> toString) ++ "..."
             in
                 ( { model | game = newGame, message = Just newMessage }, Cmd.none )
 
@@ -185,7 +185,7 @@ view { game, message } =
         div []
             [ h1 [ class "title" ] [ text "Sokoban" ]
             , div [ class "level-status" ]
-                [ span [ class "level" ] [ text ("Level " ++ toString (level.number)) ]
+                [ span [ class "level" ] [ text ("Level " ++ toString (Level.number level)) ]
                 , span [] [ text " - " ]
                 , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
                 ]
@@ -218,12 +218,14 @@ view { game, message } =
                         [ text "OK" ]
                     ]
                 , printGrid (Level.grid level)
-                , div [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
-                    [ div []
-                        [ (toString (Level.moves level)) ++ " moves" |> text ]
-                    , div []
-                        [ (toString (Level.pushes level)) ++ " pushes" |> text ]
-                    , div []
+                , div [ class "game-info" ]
+                    [ div [ class "movement-info" ]
+                        [ div [ class "moves" ]
+                            [ ((Level.moves level |> toString) ++ " moves") |> text ]
+                        , div [ class "pushes" ]
+                            [ ((Level.pushes level |> toString) ++ " pushes") |> text ]
+                        ]
+                    , div [ class "game-feedback" ]
                         [ Maybe.withDefault "" message |> text ]
                     ]
                 , div [ class "undo-buttons" ]
@@ -285,6 +287,15 @@ subscriptions { game } =
                 [ Keyboard.downs keyCodeToMsg
                 , Keyboard.ups keyUpToMsg
                 ]
+
+        LevelWon _ ->
+            Keyboard.downs
+                (\keyCode ->
+                    if keyCode == 13 then
+                        AdvanceLevel
+                    else
+                        NoOp
+                )
 
         _ ->
             Sub.none
