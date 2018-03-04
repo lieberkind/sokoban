@@ -195,10 +195,9 @@ view { game, message } =
                         [ ( "popup", True )
                         , ( "visible", Game.levelWon game )
                         ]
-                    , attribute "popup" ""
                     ]
                     [ p
-                        [ attribute "popup-text" "" ]
+                        []
                         [ text ("You completed level " ++ (Level.number level |> toString))
                         , br [] []
                         , text ("with " ++ (Level.moves level |> toString) ++ " moves")
@@ -206,15 +205,10 @@ view { game, message } =
                         , text ("and " ++ (Level.pushes level |> toString) ++ " pushes")
                         ]
                     , button
-                        [ attribute "dismiss-popup" ""
-                        , class "keyboard-button dismiss-popup"
-                        ]
+                        [ class "keyboard-button dismiss-popup" ]
                         [ text "OK" ]
                     , button
-                        [ attribute "dismiss-popup" ""
-                        , class "keyboard-button dismiss-popup"
-                        , onClick AdvanceLevel
-                        ]
+                        [ class "keyboard-button dismiss-popup", onClick AdvanceLevel ]
                         [ text "OK" ]
                     ]
                 , printGrid (Level.grid level)
