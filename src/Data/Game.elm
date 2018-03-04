@@ -31,7 +31,7 @@ move : Direction -> Game -> Result MoveError Game
 move dir game =
     case game of
         Playing ( lvl, lvls ) ->
-            Level.move dir lvl |> Result.map (updateLevel lvls)
+            Level.move dir lvl |> Result.map (gameFromLevels lvls)
 
         _ ->
             Result.Ok game
@@ -43,8 +43,8 @@ move dir game =
 -}
 
 
-updateLevel : List Level -> Level -> Game
-updateLevel rest lvl =
+gameFromLevels : List Level -> Level -> Game
+gameFromLevels rest lvl =
     if Level.hasWon lvl then
         case rest of
             [] ->

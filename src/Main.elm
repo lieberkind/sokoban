@@ -18,7 +18,6 @@ import Matrix
 import Data.LevelTemplate exposing (level0, level1)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Game as Game exposing (Game(..))
-import SelectList exposing (SelectList)
 
 
 main : Program Never Model Msg
