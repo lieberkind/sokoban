@@ -2,7 +2,7 @@ module Views.GameElement exposing (..)
 
 import Data.GameElement exposing (..)
 import Html exposing (Html, Attribute, div)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (style, class)
 
 
 block : Html msg
@@ -18,9 +18,8 @@ block =
 player : Html msg
 player =
     div
-        [ withDefaults
-            [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA')" )
-            ]
+        [ withDefaults []
+        , class "soko"
         ]
         []
 

@@ -199,11 +199,11 @@ view { game, message } =
                     ]
                     [ p
                         [ attribute "popup-text" "" ]
-                        [ text "You completed level 0"
+                        [ text ("You completed level " ++ (Level.number level |> toString))
                         , br [] []
-                        , text "with 21 moves"
+                        , text ("with " ++ (Level.moves level |> toString) ++ " moves")
                         , br [] []
-                        , text "and 7 pushes"
+                        , text ("and " ++ (Level.pushes level |> toString) ++ " pushes")
                         ]
                     , button
                         [ attribute "dismiss-popup" ""
