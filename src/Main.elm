@@ -42,11 +42,11 @@ type alias Model =
     }
 
 
-model : Model
-model =
+initialModel : Model
+initialModel =
     let
         game =
-            Game.initialise (SelectList.fromLists [] level0 [ level1 ])
+            Game.initialise level0 [ level1 ]
 
         levelNumber =
             game |> Game.currentLevel |> Level.number
@@ -59,7 +59,7 @@ model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( model, Cmd.none )
+    ( initialModel, Cmd.none )
 
 
 
@@ -133,14 +133,7 @@ update msg model =
                 ( { model | game = newGame, message = Just newMessage }, Cmd.none )
 
         StartOver ->
-            let
-                newGame =
-                    Game.reset model.game
-
-                newMessage =
-                    "Playing level " ++ (newGame |> Game.currentLevel |> Level.number |> toString) ++ "..."
-            in
-                ( { model | game = newGame, message = Just newMessage }, Cmd.none )
+            ( initialModel, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
