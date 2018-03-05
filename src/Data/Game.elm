@@ -4,7 +4,6 @@ module Data.Game
         , advanceLevel
         , currentLevel
         , initialise
-        , isOver
         , levelWon
         , move
         , undoLevel
@@ -19,7 +18,7 @@ import Data.LevelTemplate exposing (LevelTemplate)
 type Game
     = Playing ( Level, List Level )
     | LevelWon ( Level, Level, List Level )
-    | GameOver Level
+    | GameOver
 
 
 initialise : LevelTemplate -> List LevelTemplate -> Game
@@ -35,25 +34,6 @@ move dir game =
 
         _ ->
             Result.Ok game
-
-
-
-{- This needs a better name. Basically, it takes a level, and the rest of the
-   levels, and returns a game state based on those.
--}
-
-
-gameFromLevels : List Level -> Level -> Game
-gameFromLevels rest lvl =
-    if Level.hasWon lvl then
-        case rest of
-            [] ->
-                GameOver lvl
-
-            next :: rest ->
-                LevelWon ( lvl, next, rest )
-    else
-        Playing ( lvl, rest )
 
 
 undoMove : Game -> Game
@@ -75,21 +55,21 @@ undoLevel game =
         LevelWon ( current, next, rest ) ->
             Playing ( Level.reset current, next :: rest )
 
-        GameOver _ ->
+        GameOver ->
             game
 
 
-currentLevel : Game -> Level
+currentLevel : Game -> Maybe Level
 currentLevel game =
     case game of
         Playing ( current, _ ) ->
-            current
+            Just current
 
         LevelWon ( current, _, _ ) ->
-            current
+            Just current
 
-        GameOver current ->
-            current
+        GameOver ->
+            Nothing
 
 
 advanceLevel : Game -> Game
@@ -118,4 +98,22 @@ levelWon game =
 
 isOver : Game -> Bool
 isOver game =
-    False
+    case game of
+        GameOver ->
+            True
+
+        _ ->
+            False
+
+
+gameFromLevels : List Level -> Level -> Game
+gameFromLevels rest lvl =
+    if Level.hasWon lvl then
+        case rest of
+            [] ->
+                GameOver
+
+            next :: rest ->
+                LevelWon ( lvl, next, rest )
+    else
+        Playing ( lvl, rest )

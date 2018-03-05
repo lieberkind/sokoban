@@ -1,6 +1,7 @@
 module Data.LevelTemplate exposing (..)
 
 import Matrix exposing (Location)
+import Dict exposing (Dict)
 
 
 type alias LevelTemplate =

@@ -6,18 +6,15 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style, attribute, href)
 import Html.Events exposing (onMouseDown, onMouseUp, onClick)
 import Keyboard exposing (..)
-import Data.GameElement
-    exposing
-        ( GameElement(Block, Space)
-        , MovingObject(Player, Crate)
-        , SpaceType(Path, GoalField)
-        )
 import Data.Level as Level exposing (Level)
-import Views.GameElement exposing (renderGameElement)
-import Matrix
+import Views.Controls
+import Views.Level
+import Views.GameInfo
+import Views.Popups
 import Data.LevelTemplate exposing (level0, level1)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Game as Game exposing (Game(..))
+import Msg exposing (..)
 
 
 main : Program Never Model Msg
@@ -47,12 +44,14 @@ initialModel =
         game =
             Game.initialise level0 [ level1 ]
 
-        levelNumber =
-            game |> Game.currentLevel |> Level.number
+        message =
+            Game.currentLevel game
+                |> Maybe.map Level.number
+                |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
     in
         { keysDown = Set.empty
         , game = game
-        , message = Just ("Playing level " ++ toString levelNumber ++ "...")
+        , message = message
         }
 
 
@@ -61,22 +60,10 @@ init =
     ( initialModel, Cmd.none )
 
 
-
--- UPDATE
-
-
-type Msg
-    = Move Direction
-    | UndoMove
-    | UndoLevel
-    | StartOver
-    | KeyDown KeyCode
-    | KeyUp KeyCode
-    | AdvanceLevel
-    | NoOp
+port saveProgress : Int -> Cmd msg
 
 
-port undo : String -> Cmd msg
+port clearProgress : () -> Cmd msg
 
 
 getErrorMessage : MoveError -> String
@@ -127,9 +114,17 @@ update msg model =
                     Game.advanceLevel model.game
 
                 newMessage =
-                    "Playing level " ++ (newGame |> Game.currentLevel |> Level.number |> toString) ++ "..."
+                    Game.currentLevel newGame
+                        |> Maybe.map Level.number
+                        |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
+
+                cmd =
+                    Game.currentLevel newGame
+                        |> Maybe.map Level.number
+                        |> Maybe.map saveProgress
+                        |> Maybe.withDefault Cmd.none
             in
-                ( { model | game = newGame, message = Just newMessage }, Cmd.none )
+                ( { model | game = newGame, message = newMessage }, cmd )
 
         StartOver ->
             ( initialModel, Cmd.none )
@@ -158,77 +153,32 @@ keyboardButton classes msg label =
             [ text label ]
 
 
-printGrid : Matrix.Matrix GameElement -> Html Msg
-printGrid grid =
-    let
-        printRow : List GameElement -> Html Msg
-        printRow objects =
-            div [ style [ ( "overflow", "hidden" ) ] ] (List.map renderGameElement objects)
-    in
-        div [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ] (List.map printRow (Matrix.toList grid))
-
-
 view : Model -> Html Msg
 view { game, message } =
     let
         level =
             Game.currentLevel game
     in
-        div []
-            [ h1 [ class "title" ] [ text "Sokoban" ]
-            , div [ class "level-status" ]
-                [ span [ class "level" ] [ text ("Level " ++ toString (Level.number level)) ]
-                , span [] [ text " - " ]
-                , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
-                ]
-            , div [ style [ ( "position", "relative" ) ] ]
-                [ div
-                    [ classList
-                        [ ( "popup", True )
-                        , ( "visible", Game.levelWon game )
+        case level of
+            Just lvl ->
+                div []
+                    [ h1 [ class "title" ] [ text "Sokoban" ]
+                    , div [ class "level-status" ]
+                        [ span [ class "level" ] [ text ("Level " ++ toString (Level.number lvl)) ]
+                        , span [] [ text " - " ]
+                        , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
+                        ]
+                    , div [ style [ ( "position", "relative" ) ] ]
+                        [ Views.Popups.endOfLevel (Game.levelWon game) { levelNumber = Level.number lvl, moves = Level.moves lvl, pushes = Level.pushes lvl }
+                        , Views.Level.renderLevel lvl
+                        , Views.GameInfo.renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
+                        , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
+                        , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
                         ]
                     ]
-                    [ p
-                        []
-                        [ text ("You completed level " ++ (Level.number level |> toString))
-                        , br [] []
-                        , text ("with " ++ (Level.moves level |> toString) ++ " moves")
-                        , br [] []
-                        , text ("and " ++ (Level.pushes level |> toString) ++ " pushes")
-                        ]
-                    , button
-                        [ class "keyboard-button dismiss-popup" ]
-                        [ text "OK" ]
-                    , button
-                        [ class "keyboard-button dismiss-popup", onClick AdvanceLevel ]
-                        [ text "OK" ]
-                    ]
-                , printGrid (Level.grid level)
-                , div [ class "game-info" ]
-                    [ div [ class "movement-info" ]
-                        [ div [ class "moves" ]
-                            [ ((Level.moves level |> toString) ++ " moves") |> text ]
-                        , div [ class "pushes" ]
-                            [ ((Level.pushes level |> toString) ++ " pushes") |> text ]
-                        ]
-                    , div [ class "game-feedback" ]
-                        [ Maybe.withDefault "" message |> text ]
-                    ]
-                , div [ class "undo-buttons" ]
-                    [ keyboardButton [ "undo-move" ] UndoMove "Undo Move (M)"
-                    , keyboardButton [ "undo-level" ] UndoLevel "Undo Level (L)"
-                    ]
-                , div [ class "arrow-buttons" ]
-                    [ div [ class "top-row" ]
-                        [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Up) "▲" ]
-                    , div [ class "bottom-row" ]
-                        [ keyboardButton [ "arrow-button", "up-arrow" ] (Move Left) "◀"
-                        , keyboardButton [ "arrow-button", "down-arrow" ] (Move Down) "▼"
-                        , keyboardButton [ "arrow-button", "right-arrow" ] (Move Right) "▶"
-                        ]
-                    ]
-                ]
-            ]
+
+            Nothing ->
+                text "Game over. Well done."
 
 
 
