@@ -4,6 +4,7 @@ module Data.Game
         , advanceLevel
         , currentLevel
         , initialise
+        , initialiseFromLevelNumber
         , levelWon
         , move
         , undoLevel
@@ -21,9 +22,23 @@ type Game
     | GameOver
 
 
-initialise : LevelTemplate -> List LevelTemplate -> Game
-initialise first rest =
-    Playing ( Level.fromTemplate first, List.map Level.fromTemplate rest )
+initialise : List LevelTemplate -> Game
+initialise levels =
+    let
+        sortedLevels =
+            List.sortBy .levelNumber levels
+    in
+        case sortedLevels of
+            [] ->
+                GameOver
+
+            first :: rest ->
+                Playing ( Level.fromTemplate first, List.map Level.fromTemplate rest )
+
+
+initialiseFromLevelNumber : Int -> List LevelTemplate -> Game
+initialiseFromLevelNumber levelNumber =
+    initialise << List.filter (\template -> template.levelNumber >= levelNumber)
 
 
 move : Direction -> Game -> Result MoveError Game

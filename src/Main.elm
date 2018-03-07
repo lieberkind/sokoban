@@ -11,20 +11,33 @@ import Views.Controls
 import Views.Level
 import Views.GameInfo
 import Views.Popups
+import Views.Header
 import Data.LevelTemplate exposing (level0, level1)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Game as Game exposing (Game(..))
 import Msg exposing (..)
 
 
-main : Program Never Model Msg
+-- MAIN
+
+
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
         }
+
+
+
+-- FLAGS
+
+
+type alias Flags =
+    { startAtLevel : Maybe Int
+    }
 
 
 
@@ -42,7 +55,7 @@ initialModel : Model
 initialModel =
     let
         game =
-            Game.initialise level0 [ level1 ]
+            Game.initialiseFromLevelNumber -1 [ level1, level0 ]
 
         message =
             Game.currentLevel game
@@ -55,9 +68,29 @@ initialModel =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, Cmd.none )
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        initialiseLevels =
+            flags.startAtLevel
+                |> Maybe.map Game.initialiseFromLevelNumber
+                |> Maybe.withDefault Game.initialise
+
+        game =
+            initialiseLevels [ level1, level0 ]
+
+        message =
+            Game.currentLevel game
+                |> Maybe.map Level.number
+                |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
+
+        model =
+            { keysDown = Set.empty
+            , game = game
+            , message = message
+            }
+    in
+        ( model, Cmd.none )
 
 
 port saveProgress : Int -> Cmd msg
@@ -162,12 +195,7 @@ view { game, message } =
         case level of
             Just lvl ->
                 div []
-                    [ h1 [ class "title" ] [ text "Sokoban" ]
-                    , div [ class "level-status" ]
-                        [ span [ class "level" ] [ text ("Level " ++ toString (Level.number lvl)) ]
-                        , span [] [ text " - " ]
-                        , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
-                        ]
+                    [ Views.Header.renderHeader (Level.number lvl)
                     , div [ style [ ( "position", "relative" ) ] ]
                         [ Views.Popups.endOfLevel (Game.levelWon game) { levelNumber = Level.number lvl, moves = Level.moves lvl, pushes = Level.pushes lvl }
                         , Views.Level.renderLevel lvl
