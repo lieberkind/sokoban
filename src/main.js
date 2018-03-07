@@ -6,4 +6,8 @@ Progress.get().then(startAtLevel => {
 	app.ports.saveProgress.subscribe(levelNumber => {
 		Progress.save(levelNumber);
 	});
+
+	app.ports.clearProgress.subscribe(levelNumber => {
+		Progress.clear();
+	});
 });

@@ -160,7 +160,7 @@ update msg model =
                 ( { model | game = newGame, message = newMessage }, cmd )
 
         StartOver ->
-            ( initialModel, Cmd.none )
+            ( initialModel, clearProgress () )
 
         _ ->
             ( model, Cmd.none )

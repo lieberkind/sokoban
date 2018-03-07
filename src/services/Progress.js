@@ -5,7 +5,7 @@ export const get = () => {
 	return new Promise((resolve, reject) => {
 		if (!savedAt || !levelHash) {
 			console.debug('### No progress saved');
-			return 0;
+			resolve(0);
 		}
 
 		// Wow, this is horrible. Gief refactoring.
