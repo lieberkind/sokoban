@@ -51,11 +51,16 @@ type alias Model =
     }
 
 
-initialModel : Model
-initialModel =
+initialModel : Flags -> Model
+initialModel flags =
     let
+        initialiseLevels =
+            flags.startAtLevel
+                |> Maybe.map Game.initialiseFromLevelNumber
+                |> Maybe.withDefault Game.initialise
+
         game =
-            Game.initialiseFromLevelNumber -1 [ level1, level0 ]
+            initialiseLevels [ level0, level1 ]
 
         message =
             Game.currentLevel game
@@ -70,27 +75,7 @@ initialModel =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    let
-        initialiseLevels =
-            flags.startAtLevel
-                |> Maybe.map Game.initialiseFromLevelNumber
-                |> Maybe.withDefault Game.initialise
-
-        game =
-            initialiseLevels [ level1, level0 ]
-
-        message =
-            Game.currentLevel game
-                |> Maybe.map Level.number
-                |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
-
-        model =
-            { keysDown = Set.empty
-            , game = game
-            , message = message
-            }
-    in
-        ( model, Cmd.none )
+    ( initialModel flags, Cmd.none )
 
 
 port saveProgress : Int -> Cmd msg
@@ -119,21 +104,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Move direction ->
-            case Game.move direction model.game of
-                Result.Ok game ->
-                    let
-                        newModel =
-                            { model
-                                | game = game
-                                , message = Nothing
-                            }
-                    in
-                        ( newModel, Cmd.none )
+            let
+                newModel =
+                    case Game.move direction model.game of
+                        Result.Ok game ->
+                            { model | game = game, message = Nothing }
 
-                Result.Err err ->
-                    ( { model | message = Just (getErrorMessage err) }
-                    , Cmd.none
-                    )
+                        Result.Err err ->
+                            { model | game = model.game, message = Just (getErrorMessage err) }
+            in
+                ( newModel, Cmd.none )
 
         UndoMove ->
             ( { model | game = Game.undoMove model.game, message = Just "Whew! That was close!" }, Cmd.none )
@@ -160,7 +140,7 @@ update msg model =
                 ( { model | game = newGame, message = newMessage }, cmd )
 
         StartOver ->
-            ( initialModel, clearProgress () )
+            ( initialModel { startAtLevel = Nothing }, clearProgress () )
 
         _ ->
             ( model, Cmd.none )
