@@ -12,4 +12,5 @@ type Msg
     | KeyDown KeyCode
     | KeyUp KeyCode
     | AdvanceLevel
+    | UpdateSoko
     | NoOp

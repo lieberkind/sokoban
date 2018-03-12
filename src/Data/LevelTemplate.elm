@@ -1,7 +1,6 @@
 module Data.LevelTemplate exposing (..)
 
 import Matrix exposing (Location)
-import Dict exposing (Dict)
 
 
 type alias LevelTemplate =
@@ -57,4 +56,30 @@ level1 =
         , "###################"
         ]
     , playerLocation = ( 10, 11 )
+    }
+
+
+gameOver : LevelTemplate
+gameOver =
+    { levelNumber = 100
+    , grid =
+        [ "###################"
+        , "#xxxx##############"
+        , "#x##x#xxx#x##x#xxx#"
+        , "#x####x#x#xxxx#x###"
+        , "#x#xx#xxx#x##x#xx##"
+        , "#x##x#x#x#x##x#x###"
+        , "#xxxxxx#xxx##xxxxx#"
+        , "##x################"
+        , "##xxxxxxxxxxxxxx###"
+        , "##x############x###"
+        , "#xxxx##########x###"
+        , "#x##xxx#xxxxx#xxx##"
+        , "#x##x#x#x#x###x##x#"
+        , "#x##x#x#x#xx##xxx##"
+        , "#x##x#x#x#x###x##x#"
+        , "#xxxx##x##xxxxx##x#"
+        , "###################"
+        ]
+    , playerLocation = ( 3, 4 )
     }

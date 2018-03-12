@@ -72,6 +72,8 @@ grid { current } =
     current.grid
 
 
+{-| This function needs refactoring... It's simply not nice enough
+-}
 move : Direction -> Level -> Result MoveError Level
 move direction level =
     let

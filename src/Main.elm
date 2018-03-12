@@ -12,7 +12,7 @@ import Views.Level
 import Views.GameInfo
 import Views.Popups
 import Views.Header
-import Data.LevelTemplate exposing (level0, level1)
+import Data.LevelTemplate exposing (level0, level1, gameOver)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Game as Game exposing (Game(..))
 import Msg exposing (..)
@@ -60,7 +60,7 @@ initialModel flags =
                 |> Maybe.withDefault Game.initialise
 
         game =
-            initialiseLevels [ level0, level1 ]
+            initialiseLevels [ level0 ]
 
         message =
             Game.currentLevel game
@@ -186,7 +186,15 @@ view { game, message } =
                     ]
 
             Nothing ->
-                text "Game over. Well done."
+                div []
+                    [ Views.Header.renderHeader 50
+                    , div [ style [ ( "position", "relative" ) ] ]
+                        [ Views.Level.renderLevel (Level.fromTemplate gameOver)
+                        , Views.GameInfo.renderGameInfo { moves = 1000, pushes = 1000, message = Just "Well done!" }
+                        , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
+                        , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
+                        ]
+                    ]
 
 
 

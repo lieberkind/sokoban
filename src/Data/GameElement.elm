@@ -42,6 +42,12 @@ fromString str =
         "x" ->
             Space { kind = GoalField, occupant = Nothing }
 
+        "w" ->
+            Space { kind = GoalField, occupant = Just Crate }
+
+        "q" ->
+            Space { kind = GoalField, occupant = Just Player }
+
         "p" ->
             Space { kind = Path, occupant = Just Player }
 
