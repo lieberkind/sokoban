@@ -13,6 +13,6 @@ renderHeader levelNumber =
         , div [ class "level-status" ]
             [ span [ class "level" ] [ text ("Level " ++ toString levelNumber) ]
             , span [] [ text " - " ]
-            , a [ href "#", class "start-over", onClick StartOver ] [ text "Start over" ]
+            , a [ href "#", class "start-over", onClick RequestStartOverConfirmation ] [ text "Start over" ]
             ]
         ]

@@ -3,7 +3,6 @@ module Views.Popups exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
-import Msg exposing (Msg(AdvanceLevel))
 
 
 type alias LevelStats =
@@ -13,8 +12,8 @@ type alias LevelStats =
     }
 
 
-endOfLevel : Bool -> LevelStats -> Html Msg
-endOfLevel visible { levelNumber, moves, pushes } =
+endOfLevel : Bool -> String -> Html ()
+endOfLevel visible str =
     div
         [ classList
             [ ( "popup", True )
@@ -22,17 +21,27 @@ endOfLevel visible { levelNumber, moves, pushes } =
             ]
         ]
         [ p
-            []
-            [ text ("You completed level " ++ (toString levelNumber))
-            , br [] []
-            , text ("with " ++ (toString moves) ++ " moves")
-            , br [] []
-            , text ("and " ++ (toString pushes) ++ " pushes")
-            ]
+            [ class "preserve-line-breaks" ]
+            [ text str ]
         , button
-            [ class "keyboard-button dismiss-popup" ]
+            [ class "keyboard-button dismiss-popup", onClick () ]
             [ text "OK" ]
+        ]
+
+
+confirm : Bool -> String -> Html Bool
+confirm visible question =
+    div
+        [ classList
+            [ ( "popup", True )
+            , ( "visible", visible )
+            ]
+        ]
+        [ p [ class "preserve-line-breaks" ] [ text question ]
         , button
-            [ class "keyboard-button dismiss-popup", onClick AdvanceLevel ]
+            [ class "keyboard-button cancel", onClick False ]
+            [ text "Cancel" ]
+        , button
+            [ class "keyboard-button confirm", onClick True ]
             [ text "OK" ]
         ]

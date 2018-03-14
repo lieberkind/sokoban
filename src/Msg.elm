@@ -8,7 +8,9 @@ type Msg
     = Move Direction
     | UndoMove
     | UndoLevel
-    | StartOver
+    | RequestStartOverConfirmation
+    | ConfirmStartOver
+    | CancelStartOver
     | KeyDown KeyCode
     | KeyUp KeyCode
     | AdvanceLevel

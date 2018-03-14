@@ -1,4 +1,4 @@
-all: dist index elm js favicon
+all: dist index css elm js favicon
 
 dist:
 	mkdir -p ./dist/js
@@ -6,6 +6,9 @@ dist:
 
 index:
 	cp ./src/index.html ./dist/index.html
+
+css:
+	cp ./src/style.css ./dist/css/style.css
 
 elm:
 	elm-make ./src/Main.elm --output=dist/js/app.js

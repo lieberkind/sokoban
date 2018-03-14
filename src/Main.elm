@@ -48,6 +48,7 @@ type alias Model =
     { keysDown : Set Int
     , game : Game
     , message : Maybe String
+    , isStartingOver : Bool
     }
 
 
@@ -60,7 +61,7 @@ initialModel flags =
                 |> Maybe.withDefault Game.initialise
 
         game =
-            initialiseLevels [ level0 ]
+            initialiseLevels [ level0, level1 ]
 
         message =
             Game.currentLevel game
@@ -70,6 +71,7 @@ initialModel flags =
         { keysDown = Set.empty
         , game = game
         , message = message
+        , isStartingOver = False
         }
 
 
@@ -139,7 +141,13 @@ update msg model =
             in
                 ( { model | game = newGame, message = newMessage }, cmd )
 
-        StartOver ->
+        RequestStartOverConfirmation ->
+            ( { model | isStartingOver = True }, Cmd.none )
+
+        CancelStartOver ->
+            ( { model | isStartingOver = False }, Cmd.none )
+
+        ConfirmStartOver ->
             ( initialModel { startAtLevel = Nothing }, clearProgress () )
 
         _ ->
@@ -167,7 +175,7 @@ keyboardButton classes msg label =
 
 
 view : Model -> Html Msg
-view { game, message } =
+view { game, message, isStartingOver } =
     let
         level =
             Game.currentLevel game
@@ -177,7 +185,15 @@ view { game, message } =
                 div []
                     [ Views.Header.renderHeader (Level.number lvl)
                     , div [ style [ ( "position", "relative" ) ] ]
-                        [ Views.Popups.endOfLevel (Game.levelWon game) { levelNumber = Level.number lvl, moves = Level.moves lvl, pushes = Level.pushes lvl }
+                        [ Html.map
+                            (\b ->
+                                if b then
+                                    ConfirmStartOver
+                                else
+                                    CancelStartOver
+                            )
+                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
+                        , Html.map (\_ -> AdvanceLevel) (Views.Popups.endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> toString) ++ "\nwith " ++ (Level.moves lvl |> toString) ++ " moves \nand " ++ (Level.pushes lvl |> toString) ++ " pushes"))
                         , Views.Level.renderLevel lvl
                         , Views.GameInfo.renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
                         , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
