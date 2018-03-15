@@ -18,7 +18,7 @@ import Data.LevelTemplate exposing (LevelTemplate)
 
 type Game
     = Playing ( Level, List Level )
-    | LevelWon ( Level, Level, List Level )
+    | LevelWon ( Level, List Level )
     | GameOver
 
 
@@ -67,8 +67,8 @@ undoLevel game =
         Playing ( current, rest ) ->
             Playing ( Level.reset current, rest )
 
-        LevelWon ( current, next, rest ) ->
-            Playing ( Level.reset current, next :: rest )
+        LevelWon ( current, rest ) ->
+            Playing ( Level.reset current, rest )
 
         GameOver ->
             game
@@ -80,7 +80,7 @@ currentLevel game =
         Playing ( current, _ ) ->
             Just current
 
-        LevelWon ( current, _, _ ) ->
+        LevelWon ( current, _ ) ->
             Just current
 
         GameOver ->
@@ -90,8 +90,13 @@ currentLevel game =
 advanceLevel : Game -> Game
 advanceLevel game =
     case game of
-        LevelWon ( current, next, rest ) ->
-            Playing ( next, rest )
+        LevelWon ( current, rest ) ->
+            case rest of
+                [] ->
+                    GameOver
+
+                next :: rest ->
+                    Playing ( next, rest )
 
         _ ->
             game
@@ -124,11 +129,6 @@ isOver game =
 gameFromLevels : List Level -> Level -> Game
 gameFromLevels rest lvl =
     if Level.hasWon lvl then
-        case rest of
-            [] ->
-                GameOver
-
-            next :: rest ->
-                LevelWon ( lvl, next, rest )
+        LevelWon ( lvl, rest )
     else
         Playing ( lvl, rest )
