@@ -14,7 +14,7 @@ import Views.Popups
 import Views.Header
 import Data.LevelTemplate exposing (level0, level1, gameOver)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
-import Data.Game as Game exposing (Game(..))
+import Data.Game as Game exposing (Game)
 import Msg exposing (..)
 
 
@@ -55,13 +55,14 @@ type alias Model =
 initialModel : Flags -> Model
 initialModel flags =
     let
-        initialiseLevels =
-            flags.startAtLevel
-                |> Maybe.map Game.initialiseFromLevelNumber
-                |> Maybe.withDefault Game.initialise
-
         game =
-            initialiseLevels [ level0, level1 ]
+            Maybe.withDefault (Game.initialise level0 []) <|
+                case flags.startAtLevel of
+                    Just levelNumber ->
+                        Game.initialiseFromLevelNumber levelNumber [ level0 ]
+
+                    _ ->
+                        Nothing
 
         message =
             Game.currentLevel game
@@ -183,7 +184,7 @@ view { game, message, isStartingOver } =
         case level of
             Just lvl ->
                 div []
-                    [ Views.Header.renderHeader (Level.number lvl)
+                    [ Views.Header.renderHeader ("Level " ++ toString (Level.number lvl))
                     , div [ style [ ( "position", "relative" ) ] ]
                         [ Html.map
                             (\b ->
@@ -203,12 +204,21 @@ view { game, message, isStartingOver } =
 
             Nothing ->
                 div []
-                    [ Views.Header.renderHeader 50
+                    [ Views.Header.renderHeader "Game Over"
                     , div [ style [ ( "position", "relative" ) ] ]
-                        [ Views.Level.renderLevel (Level.fromTemplate gameOver)
-                        , Views.GameInfo.renderGameInfo { moves = 1000, pushes = 1000, message = Just "Well done!" }
-                        , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
-                        , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
+                        [ Html.map
+                            (\b ->
+                                if b then
+                                    ConfirmStartOver
+                                else
+                                    CancelStartOver
+                            )
+                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
+                        , Views.Level.renderLevel (Level.fromTemplate gameOver)
+                        , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
+
+                        -- , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
+                        -- , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
                         ]
                     ]
 
@@ -249,21 +259,37 @@ keyUpToMsg keyCode =
 
 subscriptions : Model -> Sub Msg
 subscriptions { game } =
-    case game of
-        Playing _ ->
-            Sub.batch
-                [ Keyboard.downs keyCodeToMsg
-                , Keyboard.ups keyUpToMsg
-                ]
+    if Game.isPlaying game then
+        Sub.batch
+            [ Keyboard.downs keyCodeToMsg
+            , Keyboard.ups keyUpToMsg
+            ]
+    else if Game.levelWon game then
+        Keyboard.downs
+            (\keyCode ->
+                if keyCode == 13 then
+                    AdvanceLevel
+                else
+                    NoOp
+            )
+    else
+        Sub.none
 
-        LevelWon _ ->
-            Keyboard.downs
-                (\keyCode ->
-                    if keyCode == 13 then
-                        AdvanceLevel
-                    else
-                        NoOp
-                )
 
-        _ ->
-            Sub.none
+
+-- case game.state of
+--     Playing ->
+--         Sub.batch
+--             [ Keyboard.downs keyCodeToMsg
+--             , Keyboard.ups keyUpToMsg
+--             ]
+--     LevelWon ->
+--         Keyboard.downs
+--             (\keyCode ->
+--                 if keyCode == 13 then
+--                     AdvanceLevel
+--                 else
+--                     NoOp
+--             )
+--     _ ->
+--         Sub.none

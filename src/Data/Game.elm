@@ -1,10 +1,12 @@
 module Data.Game
     exposing
-        ( Game(..)
+        ( Game
         , advanceLevel
         , currentLevel
         , initialise
         , initialiseFromLevelNumber
+        , isGameOver
+        , isPlaying
         , levelWon
         , move
         , undoLevel
@@ -16,46 +18,74 @@ import Data.Movement exposing (Direction, MoveError(..))
 import Data.LevelTemplate exposing (LevelTemplate)
 
 
-type Game
-    = Playing ( Level, List Level )
-    | LevelWon ( Level, List Level )
+type GameState
+    = Playing
+    | LevelWon
     | GameOver
 
 
-initialise : List LevelTemplate -> Game
-initialise levels =
+type alias Game =
+    { state : GameState
+    , currentLevel : Level
+    , remainingLevels : List Level
+    , totalMoves : Int
+    , totalPushes : Int
+    }
+
+
+initialise : LevelTemplate -> List LevelTemplate -> Game
+initialise first remaining =
+    { state = Playing
+    , currentLevel = Level.fromTemplate first
+    , remainingLevels = List.map Level.fromTemplate remaining
+    , totalMoves = 0
+    , totalPushes = 0
+    }
+
+
+initialiseFromLevelNumber : Int -> List LevelTemplate -> Maybe Game
+initialiseFromLevelNumber levelNumber levels =
     let
-        sortedLevels =
-            List.sortBy .levelNumber levels
+        levelsToPlay =
+            levels
+                |> List.filter (\template -> template.levelNumber >= levelNumber)
+
+        first =
+            List.head levelsToPlay
+
+        remaining =
+            List.tail levelsToPlay
     in
-        case sortedLevels of
-            [] ->
-                GameOver
-
-            first :: rest ->
-                Playing ( Level.fromTemplate first, List.map Level.fromTemplate rest )
-
-
-initialiseFromLevelNumber : Int -> List LevelTemplate -> Game
-initialiseFromLevelNumber levelNumber =
-    initialise << List.filter (\template -> template.levelNumber >= levelNumber)
+        Maybe.map2 initialise first remaining
 
 
 move : Direction -> Game -> Result MoveError Game
 move dir game =
-    case game of
-        Playing ( lvl, lvls ) ->
-            Level.move dir lvl |> Result.map (gameFromLevels lvls)
+    case game.state of
+        Playing ->
+            Level.move dir game.currentLevel |> Result.map (updateGame game)
 
         _ ->
             Result.Ok game
 
 
+updateGame : Game -> Level -> Game
+updateGame game level =
+    let
+        newGameState =
+            if Level.hasWon level then
+                LevelWon
+            else
+                Playing
+    in
+        { game | currentLevel = level, state = newGameState }
+
+
 undoMove : Game -> Game
 undoMove game =
-    case game of
-        Playing ( current, rest ) ->
-            Playing ( Level.undo current, rest )
+    case game.state of
+        Playing ->
+            updateGame game (Level.undo game.currentLevel)
 
         _ ->
             game
@@ -63,72 +93,68 @@ undoMove game =
 
 undoLevel : Game -> Game
 undoLevel game =
-    case game of
-        Playing ( current, rest ) ->
-            Playing ( Level.reset current, rest )
-
-        LevelWon ( current, rest ) ->
-            Playing ( Level.reset current, rest )
-
+    case game.state of
         GameOver ->
             game
+
+        _ ->
+            updateGame game (Level.reset game.currentLevel)
 
 
 currentLevel : Game -> Maybe Level
 currentLevel game =
-    case game of
-        Playing ( current, _ ) ->
-            Just current
-
-        LevelWon ( current, _ ) ->
-            Just current
-
-        GameOver ->
-            Nothing
+    if isGameOver game then
+        Nothing
+    else
+        Just game.currentLevel
 
 
 advanceLevel : Game -> Game
 advanceLevel game =
-    case game of
-        LevelWon ( current, rest ) ->
-            case rest of
+    case game.state of
+        LevelWon ->
+            case game.remainingLevels of
                 [] ->
-                    GameOver
+                    { game
+                        | state = GameOver
+                        , totalMoves = game.totalMoves + (Level.moves game.currentLevel)
+                        , totalPushes = game.totalPushes + (Level.pushes game.currentLevel)
+                    }
 
                 next :: rest ->
-                    Playing ( next, rest )
+                    { game
+                        | state = Playing
+                        , currentLevel = next
+                        , remainingLevels = rest
+                        , totalMoves = game.totalMoves + (Level.moves game.currentLevel)
+                        , totalPushes = game.totalPushes + (Level.pushes game.currentLevel)
+                    }
 
         _ ->
             game
 
 
 levelWon : Game -> Bool
-levelWon game =
-    case game of
-        LevelWon _ ->
+levelWon { state } =
+    case state of
+        LevelWon ->
             True
 
         _ ->
             False
 
 
-
--- HELPERS
-
-
-isOver : Game -> Bool
-isOver game =
-    case game of
-        GameOver ->
-            True
-
-        _ ->
-            False
-
-
-gameFromLevels : List Level -> Level -> Game
-gameFromLevels rest lvl =
-    if Level.hasWon lvl then
-        LevelWon ( lvl, rest )
+isPlaying : Game -> Bool
+isPlaying game =
+    if game.state == Playing then
+        True
     else
-        Playing ( lvl, rest )
+        False
+
+
+isGameOver : Game -> Bool
+isGameOver game =
+    if game.state == GameOver then
+        True
+    else
+        False
