@@ -2,7 +2,7 @@ module Views.GameElement exposing (..)
 
 import Data.GameElement exposing (..)
 import Html exposing (Html, Attribute, div)
-import Html.Attributes exposing (style, class)
+import Html.Attributes exposing (style, class, id)
 
 
 block : Html msg
@@ -20,6 +20,7 @@ player =
     div
         [ withDefaults []
         , class "soko"
+        , id "soko"
         ]
         []
 
