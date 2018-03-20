@@ -1,4 +1,4 @@
-all: dist index elm js favicon
+all: dist index css elm js favicon
 
 dist:
 	mkdir -p ./dist/js
@@ -7,8 +7,11 @@ dist:
 index:
 	cp ./src/index.html ./dist/index.html
 
+css:
+	cp ./src/style.css ./dist/css/style.css
+
 elm:
-	elm-make ./src/Buttons.elm --output=dist/js/buttons.js
+	elm-make ./src/Main.elm --output=dist/js/app.js
 
 js:
 	./node_modules/.bin/browserify src/main.js -o dist/js/bundle.js -t [ babelify --presets [ es2015 ] ]

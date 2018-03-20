@@ -1,27 +1,40 @@
+const PROGRESS_KEY = 'p';
+
+const isNumeric = val => Number(parseFloat(val)) === val;
+
+const isProgressValid = ({ levelNumber, totalMoves, totalPushes }) =>
+	isNumeric(levelNumber) && isNumeric(totalMoves) && isNumeric(totalPushes);
+
 export const get = () => {
-    var savedAt = localStorage.getItem('savedAt');
-    var levelHash = localStorage.getItem('levelHash');
+	const progressHash = localStorage.getItem(PROGRESS_KEY);
 
-    if(!savedAt || !levelHash) {
-        console.debug('### No progress saved');
-        return 0;
-    }
+	return new Promise((resolve, reject) => {
+		if (!progressHash) {
+			console.debug('### No progress saved');
+			resolve(null);
+			return;
+		}
 
-    var levelPlainText = atob(levelHash);
-    var parts = levelPlainText = levelPlainText.split('-');
+		try {
+			const progressString = atob(progressHash);
+			const progressObject = JSON.parse(progressString);
+			const res = isProgressValid(progressObject) ? progressObject : null;
+			resolve(res);
+		} catch (e) {
+			console.error(e);
+			resolve(null);
+		}
+	});
+};
 
-    return parts[1] === savedAt ? parts[0] : 0;
-}
+export const save = ({ levelNumber = 0, totalMoves = 0, totalPushes = 0 }) => {
+	const progress = { levelNumber, totalMoves, totalPushes };
+	const jsonProgress = JSON.stringify(progress);
+	const hashedProgress = btoa(jsonProgress);
 
-export const save = (level) => {
-    var savedAt = Date.now();
-    var levelHash = btoa(level + '-' +  savedAt);
-
-    localStorage.setItem('savedAt', savedAt);
-    localStorage.setItem('levelHash', levelHash);
-}
+	localStorage.setItem(PROGRESS_KEY, hashedProgress);
+};
 
 export const clear = () => {
-    localStorage.removeItem('savedAt');
-    localStorage.removeItem('levelHash');
-}
+	localStorage.removeItem(PROGRESS_KEY);
+};
