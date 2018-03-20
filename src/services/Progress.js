@@ -1,36 +1,42 @@
+const PROGRESS_KEY = 'p';
+
+const isNumeric = val => Number(parseFloat(val)) === val;
+
+const isProgressValid = ({ levelNumber, totalMoves, totalPushes }) =>
+	isNumeric(levelNumber) && isNumeric(totalMoves) && isNumeric(totalPushes);
+
 export const get = () => {
-	var savedAt = localStorage.getItem('savedAt');
-	var levelHash = localStorage.getItem('levelHash');
+	const progressHash = localStorage.getItem(PROGRESS_KEY);
 
 	return new Promise((resolve, reject) => {
-		if (!savedAt || !levelHash) {
+		debugger;
+
+		if (!progressHash) {
 			console.debug('### No progress saved');
-			resolve(0);
+			resolve(null);
+			return;
 		}
 
-		// Wow, this is horrible. Gief refactoring.
 		try {
-			var levelPlainText = atob(levelHash);
-			var parts = (levelPlainText = levelPlainText.split('-'));
-			var maybeLevelNumber = parts[1] === savedAt ? parseInt(parts[0]) : 0;
-			var levelNumber = isNaN(maybeLevelNumber) ? 0 : maybeLevelNumber;
-
-			resolve(levelNumber);
+			const progressString = atob(progressHash);
+			const progressObject = JSON.parse(progressString);
+			const res = isProgressValid(progressObject) ? progressObject : null;
+			resolve(res);
 		} catch (e) {
-			resolve(0);
+			console.error(e);
+			resolve(null);
 		}
 	});
 };
 
-export const save = level => {
-	var savedAt = Date.now();
-	var levelHash = btoa(level + '-' + savedAt);
+export const save = ({ levelNumber = 0, totalMoves = 0, totalPushes = 0 }) => {
+	const progress = { levelNumber, totalMoves, totalPushes };
+	const jsonProgress = JSON.stringify(progress);
+	const hashedProgress = btoa(jsonProgress);
 
-	localStorage.setItem('savedAt', savedAt);
-	localStorage.setItem('levelHash', levelHash);
+	localStorage.setItem(PROGRESS_KEY, hashedProgress);
 };
 
 export const clear = () => {
-	localStorage.removeItem('savedAt');
-	localStorage.removeItem('levelHash');
+	localStorage.removeItem(PROGRESS_KEY);
 };

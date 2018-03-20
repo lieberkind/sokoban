@@ -15,6 +15,7 @@ import Views.Header
 import Data.LevelTemplate exposing (level0, level1, gameOver)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Game as Game exposing (Game)
+import Data.Progress exposing (Progress)
 import Msg exposing (..)
 
 
@@ -36,7 +37,7 @@ main =
 
 
 type alias Flags =
-    { startAtLevel : Maybe Int
+    { progress : Maybe Progress
     }
 
 
@@ -56,10 +57,10 @@ initialModel : Flags -> Model
 initialModel flags =
     let
         game =
-            Maybe.withDefault (Game.initialise level0 []) <|
-                case flags.startAtLevel of
-                    Just levelNumber ->
-                        Game.initialiseFromLevelNumber levelNumber [ level0 ]
+            Maybe.withDefault (Game.initialise level0 [ level1 ]) <|
+                case flags.progress of
+                    Just progress ->
+                        Game.initialiseFromSaved progress [ level0, level1 ]
 
                     _ ->
                         Nothing
@@ -81,7 +82,7 @@ init flags =
     ( initialModel flags, Cmd.none )
 
 
-port saveProgress : Int -> Cmd msg
+port saveProgress : Progress -> Cmd msg
 
 
 port clearProgress : () -> Cmd msg
@@ -135,8 +136,7 @@ update msg model =
                         |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
 
                 cmd =
-                    Game.currentLevel newGame
-                        |> Maybe.map Level.number
+                    Game.toProgress newGame
                         |> Maybe.map saveProgress
                         |> Maybe.withDefault Cmd.none
             in
@@ -149,7 +149,7 @@ update msg model =
             ( { model | isStartingOver = False }, Cmd.none )
 
         ConfirmStartOver ->
-            ( initialModel { startAtLevel = Nothing }, clearProgress () )
+            ( initialModel { progress = Nothing }, clearProgress () )
 
         _ ->
             ( model, Cmd.none )
@@ -274,22 +274,3 @@ subscriptions { game } =
             )
     else
         Sub.none
-
-
-
--- case game.state of
---     Playing ->
---         Sub.batch
---             [ Keyboard.downs keyCodeToMsg
---             , Keyboard.ups keyUpToMsg
---             ]
---     LevelWon ->
---         Keyboard.downs
---             (\keyCode ->
---                 if keyCode == 13 then
---                     AdvanceLevel
---                 else
---                     NoOp
---             )
---     _ ->
---         Sub.none

@@ -4,11 +4,12 @@ module Data.Game
         , advanceLevel
         , currentLevel
         , initialise
-        , initialiseFromLevelNumber
+        , initialiseFromSaved
         , isGameOver
         , isPlaying
         , levelWon
         , move
+        , toProgress
         , undoLevel
         , undoMove
         )
@@ -16,6 +17,7 @@ module Data.Game
 import Data.Level as Level exposing (..)
 import Data.Movement exposing (Direction, MoveError(..))
 import Data.LevelTemplate exposing (LevelTemplate)
+import Data.Progress exposing (Progress)
 
 
 type GameState
@@ -43,8 +45,8 @@ initialise first remaining =
     }
 
 
-initialiseFromLevelNumber : Int -> List LevelTemplate -> Maybe Game
-initialiseFromLevelNumber levelNumber levels =
+initialiseFromSaved : Progress -> List LevelTemplate -> Maybe Game
+initialiseFromSaved { levelNumber, totalMoves, totalPushes } levels =
     let
         levelsToPlay =
             levels
@@ -57,6 +59,7 @@ initialiseFromLevelNumber levelNumber levels =
             List.tail levelsToPlay
     in
         Maybe.map2 initialise first remaining
+            |> Maybe.map (\game -> { game | totalMoves = totalMoves, totalPushes = totalPushes })
 
 
 move : Direction -> Game -> Result MoveError Game
@@ -158,3 +161,17 @@ isGameOver game =
         True
     else
         False
+
+
+toProgress : Game -> Maybe Progress
+toProgress game =
+    case game.state of
+        GameOver ->
+            Nothing
+
+        _ ->
+            Just
+                { levelNumber = Level.number game.currentLevel
+                , totalMoves = game.totalMoves
+                , totalPushes = game.totalPushes
+                }
