@@ -9,8 +9,6 @@ export const get = () => {
 	const progressHash = localStorage.getItem(PROGRESS_KEY);
 
 	return new Promise((resolve, reject) => {
-		debugger;
-
 		if (!progressHash) {
 			console.debug('### No progress saved');
 			resolve(null);

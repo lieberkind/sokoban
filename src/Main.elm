@@ -159,22 +159,6 @@ update msg model =
 -- VIEW
 
 
-keyboardButton : List String -> Msg -> String -> Html Msg
-keyboardButton classes msg label =
-    let
-        defaultClasses =
-            [ ( "keyboard-button", True ) ]
-
-        customClasses =
-            (List.map (\className -> ( className, True )) classes)
-    in
-        button
-            [ classList (List.append defaultClasses customClasses)
-            , onMouseDown msg
-            ]
-            [ text label ]
-
-
 view : Model -> Html Msg
 view { game, message, isStartingOver } =
     let
@@ -216,9 +200,6 @@ view { game, message, isStartingOver } =
                             (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
                         , Views.Level.renderLevel (Level.fromTemplate gameOver)
                         , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
-
-                        -- , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
-                        -- , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
                         ]
                     ]
 
