@@ -11,7 +11,7 @@ css:
 	cp ./src/style.css ./dist/css/style.css
 
 elm:
-	elm-make ./src/Main.elm --output=dist/js/app.js
+	npx elm-make ./src/Main.elm --output=dist/js/app.js
 
 js:
 	./node_modules/.bin/browserify src/main.js -o dist/js/bundle.js -t [ babelify --presets [ es2015 ] ]
