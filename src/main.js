@@ -12,33 +12,24 @@ Progress.get().then(progress => {
 		Progress.clear();
 	});
 
-	// Animate soko. Am actually not sure if there's a *worse* way of doing this?
-	// Should ideally be handled by Elm.
-	const ceiling = 3;
-	const floor = 0;
-	let step = 1;
-	let sokoSprite = 0;
-	let sokoClass = 'soko-' + sokoSprite;
+	// Animate soko. This is not nice. Should ideally be handled by Elm.
+	const sokoSprites = ['soko-0', 'soko-1', 'soko-2', 'soko-3', 'soko-2', 'soko-1'];
+	let sokoSpriteIndex = 0;
 
 	setInterval(function() {
 		const soko = document.getElementById('soko');
 
 		if (soko) {
-			soko.classList.remove('soko-' + sokoSprite);
+			soko.classList.remove(sokoSprites[sokoSpriteIndex]);
 
-			sokoSprite += step;
-			sokoClass = 'soko-' + sokoSprite;
-
-			if (sokoSprite === ceiling || sokoSprite === floor) {
-				step = -step;
-			}
+			sokoSpriteIndex = (sokoSpriteIndex + 1) % 5;
 		}
 	}, 300);
 
 	const paintNextSoko = () => {
 		const soko = document.getElementById('soko');
 		if (soko) {
-			soko.classList.add(sokoClass);
+			soko.classList.add(sokoSprites[sokoSpriteIndex]);
 		}
 		requestAnimationFrame(paintNextSoko);
 	};
