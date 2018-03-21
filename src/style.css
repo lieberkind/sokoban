@@ -2,6 +2,7 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
+	color: inherit;
 }
 
 html,
@@ -49,16 +50,12 @@ body {
 }
 
 .level-status {
-	color: yellow;
+	color: red;
 	font-weight: bold;
 	margin: 0 auto 8px;
 	text-align: center;
 	text-transform: uppercase;
 	width: 304px;
-}
-
-.start-over {
-	color: yellow;
 }
 
 .game-container {
