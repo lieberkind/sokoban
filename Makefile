@@ -10,6 +10,9 @@ index:
 css:
 	cp ./src/style.css ./dist/css/style.css
 
+elm-package:
+	npx elm-package install --yes
+
 elm:
 	npx elm-make ./src/Main.elm --output=dist/js/app.js
 
