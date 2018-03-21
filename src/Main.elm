@@ -1,22 +1,20 @@
 port module Main exposing (..)
 
-import List
-import Set exposing (Set, insert, remove)
+import Data.Game as Game exposing (Game)
+import Data.Level as Level exposing (Level)
+import Data.LevelTemplate exposing (..)
+import Data.Movement as Movement exposing (Direction(..), MoveError(..))
+import Data.Progress exposing (Progress)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, style, attribute, href)
-import Html.Events exposing (onMouseDown, onMouseUp, onClick)
 import Keyboard exposing (..)
-import Data.Level as Level exposing (Level)
-import Views.Controls
-import Views.Level
-import Views.GameInfo
-import Views.Popups
-import Views.Header
-import Data.LevelTemplate exposing (level0, level1, gameOver)
-import Data.Movement as Movement exposing (Direction(..), MoveError(..))
-import Data.Game as Game exposing (Game)
-import Data.Progress exposing (Progress)
 import Msg exposing (..)
+import Set exposing (Set, insert, remove)
+import Views.Controls
+import Views.GameInfo
+import Views.Header
+import Views.Level
+import Views.Popups
 
 
 -- MAIN
@@ -57,10 +55,10 @@ initialModel : Flags -> Model
 initialModel flags =
     let
         game =
-            Maybe.withDefault (Game.initialise level0 [ level1 ]) <|
+            Maybe.withDefault (Game.initialise level0 [ level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13 ]) <|
                 case flags.progress of
                     Just progress ->
-                        Game.initialiseFromSaved progress [ level0, level1 ]
+                        Game.initialiseFromSaved progress [ level0, level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13 ]
 
                     _ ->
                         Nothing
