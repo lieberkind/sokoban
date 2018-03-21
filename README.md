@@ -4,9 +4,9 @@ An implementation of the Sokoban game for Windows 3.x, made in order to learn El
 
 Trying to make the look and feel as close to the game game I played as a child:
 
-|          Windows 3.x Sokoban          |          Elm Sokoban           |
-| :-----------------------------------: | :----------------------------: |
-| ![Windows 3 Sokoban](win3sokoban.png) | ![Elm Sokoban](elmsokoban.png) |
+|          Windows 3.x Sokoban          |           Elm Sokoban           |
+| :-----------------------------------: | :-----------------------------: |
+| ![Windows 3 Sokoban](win3sokoban.png) | ![Elm Sokoban](elmsokoban1.png) |
 
 **Note:** This was originally created in JavaScript in order to get to know the Redux framework. The old repository can be found here: [https://github.com/lieberkind/sokoban/tree/legacy-js](https://github.com/lieberkind/sokoban/tree/legacy-js)
 
