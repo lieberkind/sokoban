@@ -55,13 +55,9 @@ initialModel : Flags -> Model
 initialModel flags =
     let
         game =
-            Maybe.withDefault (Game.initialise level0 [ level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13 ]) <|
-                case flags.progress of
-                    Just progress ->
-                        Game.initialiseFromSaved progress [ level0, level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13 ]
-
-                    _ ->
-                        Nothing
+            flags.progress
+                |> Maybe.map Game.fromProgress
+                |> Maybe.withDefault Game.new
 
         message =
             Game.currentLevel game

@@ -1,6 +1,7 @@
 module Data.LevelTemplate exposing (..)
 
 import Matrix exposing (Location)
+import List.Nonempty as NE exposing (Nonempty, (:::))
 
 
 type alias LevelTemplate =
@@ -369,6 +370,11 @@ level13 =
         ]
     , playerLocation = ( 6, 6 )
     }
+
+
+allLevels : Nonempty LevelTemplate
+allLevels =
+    NE.Nonempty level0 [ level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12, level13 ]
 
 
 gameOver : LevelTemplate

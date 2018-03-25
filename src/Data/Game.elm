@@ -3,12 +3,12 @@ module Data.Game
         ( Game
         , advanceLevel
         , currentLevel
-        , initialise
-        , initialiseFromSaved
+        , fromProgress
         , isGameOver
         , isPlaying
         , levelWon
         , move
+        , new
         , toProgress
         , undoLevel
         , undoMove
@@ -16,8 +16,9 @@ module Data.Game
 
 import Data.Level as Level exposing (..)
 import Data.Movement exposing (Direction, MoveError(..))
-import Data.LevelTemplate exposing (LevelTemplate)
+import Data.LevelTemplate as LevelTemplate exposing (LevelTemplate)
 import Data.Progress exposing (Progress)
+import List.Nonempty as NE exposing (Nonempty(Nonempty))
 
 
 type GameState
@@ -28,67 +29,54 @@ type GameState
 
 type alias Game =
     { state : GameState
-    , currentLevel : Level
-    , remainingLevels : List Level
+    , levels : Nonempty Level
     , totalMoves : Int
     , totalPushes : Int
     }
 
 
-initialise : LevelTemplate -> List LevelTemplate -> Game
-initialise first remaining =
+new : Game
+new =
     { state = Playing
-    , currentLevel = Level.fromTemplate first
-    , remainingLevels = List.map Level.fromTemplate remaining
+    , levels = NE.map Level.fromTemplate LevelTemplate.allLevels
     , totalMoves = 0
     , totalPushes = 0
     }
 
 
-initialiseFromSaved : Progress -> List LevelTemplate -> Maybe Game
-initialiseFromSaved { levelNumber, totalMoves, totalPushes } levels =
+fromProgress : Progress -> Game
+fromProgress { levelNumber, totalMoves, totalPushes } =
     let
         levelsToPlay =
-            levels
+            LevelTemplate.allLevels
+                |> NE.toList
                 |> List.filter (\template -> template.levelNumber >= levelNumber)
-
-        first =
-            List.head levelsToPlay
-
-        remaining =
-            List.tail levelsToPlay
+                |> NE.fromList
+                |> Maybe.withDefault LevelTemplate.allLevels
+                |> NE.map Level.fromTemplate
     in
-        Maybe.map2 initialise first remaining
-            |> Maybe.map (\game -> { game | totalMoves = totalMoves, totalPushes = totalPushes })
+        { state = Playing
+        , levels = levelsToPlay
+        , totalMoves = totalMoves
+        , totalPushes = totalPushes
+        }
 
 
 move : Direction -> Game -> Result MoveError Game
 move dir game =
     case game.state of
         Playing ->
-            Level.move dir game.currentLevel |> Result.map (updateGame game)
+            Level.move dir (safeCurrentLevel game) |> Result.map (updateGame game)
 
         _ ->
             Result.Ok game
-
-
-updateGame : Game -> Level -> Game
-updateGame game level =
-    let
-        newGameState =
-            if Level.hasWon level then
-                LevelWon
-            else
-                Playing
-    in
-        { game | currentLevel = level, state = newGameState }
 
 
 undoMove : Game -> Game
 undoMove game =
     case game.state of
         Playing ->
-            updateGame game (Level.undo game.currentLevel)
+            updateGame game (Level.undo (safeCurrentLevel game))
 
         _ ->
             game
@@ -101,7 +89,7 @@ undoLevel game =
             game
 
         _ ->
-            updateGame game (Level.reset game.currentLevel)
+            updateGame game (Level.reset (safeCurrentLevel game))
 
 
 currentLevel : Game -> Maybe Level
@@ -109,28 +97,27 @@ currentLevel game =
     if isGameOver game then
         Nothing
     else
-        Just game.currentLevel
+        Just (safeCurrentLevel game)
 
 
 advanceLevel : Game -> Game
 advanceLevel game =
     case game.state of
         LevelWon ->
-            case game.remainingLevels of
+            case (NE.tail game.levels) of
                 [] ->
                     { game
                         | state = GameOver
-                        , totalMoves = game.totalMoves + (Level.moves game.currentLevel)
-                        , totalPushes = game.totalPushes + (Level.pushes game.currentLevel)
+                        , totalMoves = game.totalMoves + (Level.moves (safeCurrentLevel game))
+                        , totalPushes = game.totalPushes + (Level.pushes (safeCurrentLevel game))
                     }
 
                 next :: rest ->
                     { game
                         | state = Playing
-                        , currentLevel = next
-                        , remainingLevels = rest
-                        , totalMoves = game.totalMoves + (Level.moves game.currentLevel)
-                        , totalPushes = game.totalPushes + (Level.pushes game.currentLevel)
+                        , levels = Nonempty next rest
+                        , totalMoves = game.totalMoves + (Level.moves (safeCurrentLevel game))
+                        , totalPushes = game.totalPushes + (Level.pushes (safeCurrentLevel game))
                     }
 
         _ ->
@@ -171,7 +158,31 @@ toProgress game =
 
         _ ->
             Just
-                { levelNumber = Level.number game.currentLevel
+                { levelNumber = Level.number (safeCurrentLevel game)
                 , totalMoves = game.totalMoves
                 , totalPushes = game.totalPushes
                 }
+
+
+
+-- HELPERS
+
+
+updateGame : Game -> Level -> Game
+updateGame game level =
+    let
+        newGameState =
+            if Level.hasWon level then
+                LevelWon
+            else
+                Playing
+
+        newLevels =
+            Nonempty level (NE.tail game.levels)
+    in
+        { game | levels = newLevels, state = newGameState }
+
+
+safeCurrentLevel : Game -> Level
+safeCurrentLevel { levels } =
+    NE.head levels
