@@ -3,12 +3,12 @@ module Data.Game
         ( Game
         , advanceLevel
         , currentLevel
-        , initialise
-        , initialiseFromSaved
+        , fromProgress
         , isGameOver
         , isPlaying
         , levelWon
         , move
+        , new
         , toProgress
         , undoLevel
         , undoMove
@@ -35,17 +35,17 @@ type alias Game =
     }
 
 
-initialise : Game
-initialise =
+new : Game
+new =
     { state = Playing
-    , levels = LevelTemplate.allLevels |> NE.map Level.fromTemplate
+    , levels = NE.map Level.fromTemplate LevelTemplate.allLevels
     , totalMoves = 0
     , totalPushes = 0
     }
 
 
-initialiseFromSaved : Progress -> Game
-initialiseFromSaved { levelNumber, totalMoves, totalPushes } =
+fromProgress : Progress -> Game
+fromProgress { levelNumber, totalMoves, totalPushes } =
     let
         levelsToPlay =
             LevelTemplate.allLevels
@@ -55,7 +55,11 @@ initialiseFromSaved { levelNumber, totalMoves, totalPushes } =
                 |> Maybe.withDefault LevelTemplate.allLevels
                 |> NE.map Level.fromTemplate
     in
-        { state = Playing, levels = levelsToPlay, totalMoves = totalMoves, totalPushes = totalPushes }
+        { state = Playing
+        , levels = levelsToPlay
+        , totalMoves = totalMoves
+        , totalPushes = totalPushes
+        }
 
 
 move : Direction -> Game -> Result MoveError Game

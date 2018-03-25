@@ -56,8 +56,8 @@ initialModel flags =
     let
         game =
             flags.progress
-                |> Maybe.map Game.initialiseFromSaved
-                |> Maybe.withDefault Game.initialise
+                |> Maybe.map Game.fromProgress
+                |> Maybe.withDefault Game.new
 
         message =
             Game.currentLevel game
