@@ -2,19 +2,13 @@ port module Main exposing (..)
 
 import Data.Game as Game exposing (Game)
 import Data.Level as Level exposing (Level)
-import Data.LevelTemplate exposing (..)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Progress exposing (Progress)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, style, attribute, href)
 import Keyboard exposing (..)
 import Msg exposing (..)
 import Set exposing (Set, insert, remove)
-import Views.Controls
-import Views.GameInfo
-import Views.Header
-import Views.Level
-import Views.Popups
+import Views exposing (renderApp)
 
 
 -- MAIN
@@ -149,53 +143,9 @@ update msg model =
             ( model, Cmd.none )
 
 
-
--- VIEW
-
-
 view : Model -> Html Msg
-view { game, message, isStartingOver } =
-    let
-        level =
-            Game.currentLevel game
-    in
-        case level of
-            Just lvl ->
-                div []
-                    [ Views.Header.renderHeader ("Level " ++ toString (Level.number lvl))
-                    , div [ style [ ( "position", "relative" ) ] ]
-                        [ Html.map
-                            (\b ->
-                                if b then
-                                    ConfirmStartOver
-                                else
-                                    CancelStartOver
-                            )
-                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , Html.map (\_ -> AdvanceLevel) (Views.Popups.endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> toString) ++ "\nwith " ++ (Level.moves lvl |> toString) ++ " moves \nand " ++ (Level.pushes lvl |> toString) ++ " pushes"))
-                        , Views.Level.renderLevel lvl
-                        , Views.GameInfo.renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
-                        , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
-                        , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
-                        ]
-                    ]
-
-            Nothing ->
-                div []
-                    [ Views.Header.renderHeader "Game Over"
-                    , div [ style [ ( "position", "relative" ) ] ]
-                        [ Html.map
-                            (\b ->
-                                if b then
-                                    ConfirmStartOver
-                                else
-                                    CancelStartOver
-                            )
-                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , Views.Level.renderLevel (Level.fromTemplate gameOver)
-                        , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
-                        ]
-                    ]
+view model =
+    renderApp model.game model.message model.isStartingOver
 
 
 

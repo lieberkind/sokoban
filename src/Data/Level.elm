@@ -39,9 +39,6 @@ type alias Level =
     }
 
 
-{-| The only way to instantiate a new game. Should contain validation of
-the passed level to make sure that it's "correct"
--}
 fromTemplate : LevelTemplate -> Level
 fromTemplate tmpl =
     let
