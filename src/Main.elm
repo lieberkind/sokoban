@@ -1,9 +1,8 @@
 port module Main exposing (..)
 
-import Data.Game as Game exposing (Game)
+import Data.Game as Game exposing (Game, Progress)
 import Data.Level as Level exposing (Level)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
-import Data.Progress exposing (Progress)
 import Html exposing (..)
 import Keyboard exposing (..)
 import Msg exposing (..)

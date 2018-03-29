@@ -1,6 +1,7 @@
 module Data.Game
     exposing
         ( Game
+        , Progress
         , advanceLevel
         , currentLevel
         , fromProgress
@@ -17,8 +18,14 @@ module Data.Game
 import Data.Level as Level exposing (..)
 import Data.Movement exposing (Direction, MoveError(..))
 import Data.LevelTemplate as LevelTemplate exposing (LevelTemplate)
-import Data.Progress exposing (Progress)
 import List.Nonempty as NE exposing (Nonempty(Nonempty))
+
+
+type alias Progress =
+    { levelNumber : Int
+    , totalMoves : Int
+    , totalPushes : Int
+    }
 
 
 type GameState
