@@ -3,11 +3,14 @@ port module Main exposing (..)
 import Data.Game as Game exposing (Game, Progress)
 import Data.Level as Level exposing (Level)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
+import Data.Cyclic as Cyclic exposing (Cyclic)
+import Data.PlayerSprite exposing (PlayerSprite(..))
 import Html exposing (..)
 import Keyboard exposing (..)
 import Msg exposing (..)
 import Set exposing (Set, insert, remove)
 import Views exposing (renderApp)
+import Time exposing (every, millisecond)
 
 
 -- MAIN
@@ -41,6 +44,7 @@ type alias Model =
     , game : Game
     , message : Maybe String
     , isStartingOver : Bool
+    , playerSprites : Cyclic PlayerSprite
     }
 
 
@@ -56,11 +60,15 @@ initialModel flags =
             Game.currentLevel game
                 |> Maybe.map Level.number
                 |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
+
+        playerSprites =
+            Cyclic.fromElements Neutral [ Content, Happy, Ecstatic, Happy, Content ]
     in
         { keysDown = Set.empty
         , game = game
         , message = message
         , isStartingOver = False
+        , playerSprites = playerSprites
         }
 
 
@@ -138,13 +146,18 @@ update msg model =
         ConfirmStartOver ->
             ( initialModel { progress = Nothing }, clearProgress () )
 
+        NextPlayerSprite ->
+            ( { model | playerSprites = Cyclic.next model.playerSprites }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    renderApp model.game model.message model.isStartingOver
+    renderApp model.game model.message model.isStartingOver model.playerSprites
 
 
 
@@ -182,11 +195,12 @@ keyUpToMsg keyCode =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { game } =
+subscriptions { game, playerSprites } =
     if Game.isPlaying game then
         Sub.batch
             [ Keyboard.downs keyCodeToMsg
             , Keyboard.ups keyUpToMsg
+            , Time.every (millisecond * 300) (\_ -> NextPlayerSprite)
             ]
     else if Game.levelWon game then
         Keyboard.downs

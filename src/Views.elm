@@ -5,6 +5,8 @@ import Data.Level as Level exposing (Level)
 import Data.Game as Game exposing (Game)
 import Data.Movement exposing (Direction(..))
 import Data.LevelTemplate exposing (gameOver)
+import Data.Cyclic as Cyclic exposing (Cyclic, current)
+import Data.PlayerSprite exposing (PlayerSprite(..))
 import Msg exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (id, class, style, classList, href)
@@ -15,21 +17,18 @@ import Matrix exposing (Matrix)
 -- GameElement
 
 
-type PlayerSprite
-    = Neutral
-    | Content
-    | Happy
-    | Ecstatic
-
-
-player : Html msg
-player =
-    div
-        [ withDefaults []
-        , class "soko"
-        , id "soko"
-        ]
-        []
+player : PlayerSprite -> Html msg
+player currentPlayerSprite =
+    let
+        playerClass =
+            currentPlayerSprite |> toString |> String.toLower
+    in
+        div
+            [ withDefaults []
+            , class ("soko " ++ playerClass)
+            , id "soko"
+            ]
+            []
 
 
 block : Html msg
@@ -52,12 +51,12 @@ crate =
         []
 
 
-renderSpace : Occupyable r -> Html msg
-renderSpace { kind, occupant } =
+renderSpace : Occupyable r -> PlayerSprite -> Html msg
+renderSpace { kind, occupant } currentPlayerSprite =
     let
-        renderOccupant : Maybe MovingObject -> Html msg
-        renderOccupant o =
-            (Maybe.map renderMovingObject o |> Maybe.withDefault (div [] []))
+        renderOccupant : PlayerSprite -> Maybe MovingObject -> Html msg
+        renderOccupant playerSprite o =
+            (Maybe.map (renderMovingObject playerSprite) o |> Maybe.withDefault (div [] []))
     in
         case kind of
             GoalField ->
@@ -66,7 +65,7 @@ renderSpace { kind, occupant } =
                         [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYklEQVRYR+3VywoAIAhEUf3/jzYi2rjTgR5w3UvjIdTNLOxiOQEQQAABBL4ViFgnxH1u8361b8EzAfLsVRFZ4HiATa8+vPvLAtcD5MnVz1gWeC5AfwOsTlmAAAgggAACqsAA1gU4AQHGir0AAAAASUVORK5CYIIA')" )
                         ]
                     ]
-                    [ renderOccupant occupant ]
+                    [ renderOccupant currentPlayerSprite occupant ]
 
             Path ->
                 div
@@ -74,24 +73,24 @@ renderSpace { kind, occupant } =
                         [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA')" )
                         ]
                     ]
-                    [ renderOccupant occupant ]
+                    [ renderOccupant currentPlayerSprite occupant ]
 
 
-renderMovingObject : MovingObject -> Html msg
-renderMovingObject obj =
+renderMovingObject : PlayerSprite -> MovingObject -> Html msg
+renderMovingObject currentPlayerSprite obj =
     case obj of
         Player ->
-            player
+            player currentPlayerSprite
 
         Crate ->
             crate
 
 
-renderGameElement : GameElement -> Html msg
-renderGameElement obj =
+renderGameElement : PlayerSprite -> GameElement -> Html msg
+renderGameElement playerSprite obj =
     case obj of
         Space s ->
-            renderSpace s
+            renderSpace s playerSprite
 
         Block ->
             block
@@ -156,19 +155,17 @@ keyboardButton classes msg label =
 -- Level
 
 
-renderLevel : Level -> Html msg
-renderLevel level =
-    printGrid (Level.grid level)
-
-
-printGrid : Matrix GameElement -> Html msg
-printGrid grid =
+renderLevel : Level -> PlayerSprite -> Html msg
+renderLevel level currentPlayerSprite =
     let
+        grid =
+            Level.grid level
+
         printRow : List GameElement -> Html msg
         printRow elements =
             div
                 [ style [ ( "overflow", "hidden" ) ] ]
-                (List.map renderGameElement elements)
+                (List.map (renderGameElement currentPlayerSprite) elements)
     in
         div
             [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
@@ -176,6 +173,19 @@ printGrid grid =
 
 
 
+-- printGrid (Level.grid level)
+-- printGrid : Matrix GameElement -> Html msg
+-- printGrid grid =
+--     let
+--         printRow : List GameElement -> Html msg
+--         printRow elements =
+--             div
+--                 [ style [ ( "overflow", "hidden" ) ] ]
+--                 (List.map renderGameElement elements)
+--     in
+--         div
+--             [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
+--             (List.map printRow (Matrix.toList grid))
 -- Header
 
 
@@ -282,11 +292,14 @@ renderGameOverInfo { moves, pushes, message } =
 -- Game
 
 
-renderApp : Game -> Maybe String -> Bool -> Html Msg
-renderApp game message isStartingOver =
+renderApp : Game -> Maybe String -> Bool -> Cyclic PlayerSprite -> Html Msg
+renderApp game message isStartingOver playerSprites =
     let
         level =
             Game.currentLevel game
+
+        currentPlayerSprite =
+            Cyclic.current playerSprites
     in
         case level of
             Just lvl ->
@@ -302,7 +315,7 @@ renderApp game message isStartingOver =
                             )
                             (confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
                         , Html.map (\_ -> AdvanceLevel) (endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> toString) ++ "\nwith " ++ (Level.moves lvl |> toString) ++ " moves \nand " ++ (Level.pushes lvl |> toString) ++ " pushes"))
-                        , renderLevel lvl
+                        , renderLevel lvl currentPlayerSprite
                         , renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
                         , undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
                         , arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
@@ -321,7 +334,7 @@ renderApp game message isStartingOver =
                                     CancelStartOver
                             )
                             (confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , renderLevel (Level.fromTemplate gameOver)
+                        , renderLevel (Level.fromTemplate gameOver) currentPlayerSprite
                         , renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
                         ]
                     ]
