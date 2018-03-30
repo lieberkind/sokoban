@@ -44,7 +44,6 @@ type alias Model =
     , game : Game
     , message : Maybe String
     , isStartingOver : Bool
-    , playerSprites : Cyclic PlayerSprite
     }
 
 
@@ -60,15 +59,11 @@ initialModel flags =
             Game.currentLevel game
                 |> Maybe.map Level.number
                 |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
-
-        playerSprites =
-            Cyclic.fromElements Neutral [ Content, Happy, Ecstatic, Happy, Content ]
     in
         { keysDown = Set.empty
         , game = game
         , message = message
         , isStartingOver = False
-        , playerSprites = playerSprites
         }
 
 
@@ -147,9 +142,11 @@ update msg model =
             ( initialModel { progress = Nothing }, clearProgress () )
 
         NextPlayerSprite ->
-            ( { model | playerSprites = Cyclic.next model.playerSprites }
-            , Cmd.none
-            )
+            let
+                newGame =
+                    Game.nextPlayerMood model.game
+            in
+                ( { model | game = newGame }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -157,7 +154,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    renderApp model.game model.message model.isStartingOver model.playerSprites
+    renderApp model.game model.message model.isStartingOver
 
 
 
@@ -195,7 +192,7 @@ keyUpToMsg keyCode =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { game, playerSprites } =
+subscriptions { game } =
     if Game.isPlaying game then
         Sub.batch
             [ Keyboard.downs keyCodeToMsg

@@ -7,6 +7,7 @@ module Data.Level
         , hasWon
         , move
         , moves
+        , nextPlayerMood
         , number
         , pushes
         , reset
@@ -15,8 +16,9 @@ module Data.Level
 
 import Matrix exposing (Matrix, Location)
 import Data.LevelTemplate exposing (LevelTemplate)
-import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
+import Data.GameElement as Element exposing (GameElement(..), Occupant(..), Occupyable)
 import Data.Movement exposing (Direction(..), MoveError(..))
+import Data.Cyclic as Cyclic
 
 
 type alias Grid =
@@ -90,13 +92,13 @@ move direction level =
         twoSpacesAway =
             getAdjacentLocation oneSpaceAway direction
 
-        movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
+        movePlayer : Occupyable -> Occupyable -> Grid -> Grid
         movePlayer o1 o2 grid =
             grid
                 |> Matrix.set lvl.playerLocation (Element.deoccupy o1)
-                |> Matrix.set oneSpaceAway (Element.occupyWith Player o2)
+                |> Matrix.set oneSpaceAway (Element.occupyWith o1.occupant o2)
 
-        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
+        pushCrate : Occupyable -> Occupyable -> Occupyable -> Grid -> Grid
         pushCrate o1 o2 o3 grid =
             movePlayer o1 o2 grid
                 |> Matrix.set twoSpacesAway (Element.occupyWith Crate o3)
@@ -114,10 +116,7 @@ move direction level =
             -- There's a block two spaces away
             ( Space s1, Space s2, Block ) ->
                 case s2.occupant of
-                    Just _ ->
-                        Result.Err BlockedByCrate
-
-                    Nothing ->
+                    None ->
                         let
                             newCurrent =
                                 { lvl
@@ -128,11 +127,14 @@ move direction level =
                         in
                             Result.Ok
                                 { level | current = newCurrent, previous = Just lvl }
+
+                    _ ->
+                        Result.Err BlockedByCrate
 
             -- There are two adjacent spaces, potentially occupied by crates
             ( Space s1, Space s2, Space s3 ) ->
                 case ( s2.occupant, s3.occupant ) of
-                    ( Nothing, _ ) ->
+                    ( None, _ ) ->
                         let
                             newCurrent =
                                 { lvl
@@ -144,7 +146,7 @@ move direction level =
                             Result.Ok
                                 { level | current = newCurrent, previous = Just lvl }
 
-                    ( Just Crate, Nothing ) ->
+                    ( Crate, None ) ->
                         let
                             newCurrent =
                                 { grid = (pushCrate s1 s2 s3 grid)
@@ -156,7 +158,7 @@ move direction level =
                             Result.Ok
                                 { level | current = newCurrent, previous = Just lvl }
 
-                    ( Just Crate, Just _ ) ->
+                    ( Crate, _ ) ->
                         Result.Err BlockedByCrate
 
                     _ ->
@@ -194,6 +196,37 @@ pushes lvl =
 number : Level -> Int
 number lvl =
     lvl.number
+
+
+{-| This could probably be a lot nicer
+-}
+nextPlayerMood : Level -> Level
+nextPlayerMood level =
+    let
+        nextPlayerMood levelState =
+            let
+                element =
+                    Matrix.get levelState.playerLocation levelState.grid |> Maybe.withDefault Block
+            in
+                case element of
+                    Space s ->
+                        case s.occupant of
+                            Player moods ->
+                                { levelState
+                                    | grid =
+                                        Matrix.set
+                                            levelState.playerLocation
+                                            (Space { s | occupant = (Player (Cyclic.next moods)) })
+                                            levelState.grid
+                                }
+
+                            _ ->
+                                levelState
+
+                    _ ->
+                        levelState
+    in
+        { level | current = nextPlayerMood level.current, previous = Maybe.map nextPlayerMood level.previous }
 
 
 

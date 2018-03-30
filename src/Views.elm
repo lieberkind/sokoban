@@ -17,7 +17,7 @@ import Matrix exposing (Matrix)
 -- GameElement
 
 
-player : PlayerSprite -> Html msg
+player : PlayerMood -> Html msg
 player currentPlayerSprite =
     let
         playerClass =
@@ -51,46 +51,44 @@ crate =
         []
 
 
-renderSpace : Occupyable r -> PlayerSprite -> Html msg
-renderSpace { kind, occupant } currentPlayerSprite =
-    let
-        renderOccupant : PlayerSprite -> Maybe MovingObject -> Html msg
-        renderOccupant playerSprite o =
-            (Maybe.map (renderMovingObject playerSprite) o |> Maybe.withDefault (div [] []))
-    in
-        case kind of
-            GoalField ->
-                div
-                    [ withDefaults
-                        [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYklEQVRYR+3VywoAIAhEUf3/jzYi2rjTgR5w3UvjIdTNLOxiOQEQQAABBL4ViFgnxH1u8361b8EzAfLsVRFZ4HiATa8+vPvLAtcD5MnVz1gWeC5AfwOsTlmAAAgggAACqsAA1gU4AQHGir0AAAAASUVORK5CYIIA')" )
-                        ]
+renderOccupyable : Occupyable -> Html msg
+renderOccupyable { kind, occupant } =
+    case kind of
+        GoalField ->
+            div
+                [ withDefaults
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYklEQVRYR+3VywoAIAhEUf3/jzYi2rjTgR5w3UvjIdTNLOxiOQEQQAABBL4ViFgnxH1u8361b8EzAfLsVRFZ4HiATa8+vPvLAtcD5MnVz1gWeC5AfwOsTlmAAAgggAACqsAA1gU4AQHGir0AAAAASUVORK5CYIIA')" )
                     ]
-                    [ renderOccupant currentPlayerSprite occupant ]
+                ]
+                [ renderOccupant occupant ]
 
-            Path ->
-                div
-                    [ withDefaults
-                        [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA')" )
-                        ]
+        Path ->
+            div
+                [ withDefaults
+                    [ ( "background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA')" )
                     ]
-                    [ renderOccupant currentPlayerSprite occupant ]
+                ]
+                [ renderOccupant occupant ]
 
 
-renderMovingObject : PlayerSprite -> MovingObject -> Html msg
-renderMovingObject currentPlayerSprite obj =
-    case obj of
-        Player ->
-            player currentPlayerSprite
+renderOccupant : Occupant -> Html msg
+renderOccupant occupant =
+    case occupant of
+        Player moods ->
+            player (Cyclic.current moods)
 
         Crate ->
             crate
 
+        None ->
+            div [] []
 
-renderGameElement : PlayerSprite -> GameElement -> Html msg
-renderGameElement playerSprite obj =
-    case obj of
-        Space s ->
-            renderSpace s playerSprite
+
+renderGameElement : GameElement -> Html msg
+renderGameElement elm =
+    case elm of
+        Space occupyable ->
+            renderOccupyable occupyable
 
         Block ->
             block
@@ -155,8 +153,8 @@ keyboardButton classes msg label =
 -- Level
 
 
-renderLevel : Level -> PlayerSprite -> Html msg
-renderLevel level currentPlayerSprite =
+renderLevel : Level -> Html msg
+renderLevel level =
     let
         grid =
             Level.grid level
@@ -165,7 +163,7 @@ renderLevel level currentPlayerSprite =
         printRow elements =
             div
                 [ style [ ( "overflow", "hidden" ) ] ]
-                (List.map (renderGameElement currentPlayerSprite) elements)
+                (List.map renderGameElement elements)
     in
         div
             [ style [ ( "margin", "0 auto" ), ( "width", "304px" ) ] ]
@@ -292,14 +290,11 @@ renderGameOverInfo { moves, pushes, message } =
 -- Game
 
 
-renderApp : Game -> Maybe String -> Bool -> Cyclic PlayerSprite -> Html Msg
-renderApp game message isStartingOver playerSprites =
+renderApp : Game -> Maybe String -> Bool -> Html Msg
+renderApp game message isStartingOver =
     let
         level =
             Game.currentLevel game
-
-        currentPlayerSprite =
-            Cyclic.current playerSprites
     in
         case level of
             Just lvl ->
@@ -315,7 +310,7 @@ renderApp game message isStartingOver playerSprites =
                             )
                             (confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
                         , Html.map (\_ -> AdvanceLevel) (endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> toString) ++ "\nwith " ++ (Level.moves lvl |> toString) ++ " moves \nand " ++ (Level.pushes lvl |> toString) ++ " pushes"))
-                        , renderLevel lvl currentPlayerSprite
+                        , renderLevel lvl
                         , renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
                         , undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
                         , arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
@@ -334,7 +329,7 @@ renderApp game message isStartingOver playerSprites =
                                     CancelStartOver
                             )
                             (confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , renderLevel (Level.fromTemplate gameOver) currentPlayerSprite
+                        , renderLevel (Level.fromTemplate gameOver)
                         , renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
                         ]
                     ]

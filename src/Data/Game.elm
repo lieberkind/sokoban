@@ -10,6 +10,7 @@ module Data.Game
         , levelWon
         , move
         , new
+        , nextPlayerMood
         , toProgress
         , undoLevel
         , undoMove
@@ -169,6 +170,16 @@ toProgress game =
                 , totalMoves = game.totalMoves
                 , totalPushes = game.totalPushes
                 }
+
+
+nextPlayerMood : Game -> Game
+nextPlayerMood game =
+    case game.state of
+        Playing ->
+            updateGame game (Level.nextPlayerMood (safeCurrentLevel game))
+
+        _ ->
+            game
 
 
 

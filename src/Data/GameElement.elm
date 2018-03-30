@@ -1,95 +1,92 @@
 module Data.GameElement exposing (..)
 
+import Data.Cyclic as Cyclic exposing (Cyclic)
+
+
+type PlayerMood
+    = Neutral
+    | Content
+    | Happy
+    | Ecstatic
+
 
 type SpaceType
     = GoalField
     | Path
 
 
-type MovingObject
-    = Player
+type Occupant
+    = None
+    | Player (Cyclic PlayerMood)
     | Crate
 
 
-{-| A GameElement can either be a Block or a Space.
+type alias Occupyable =
+    { kind : SpaceType, occupant : Occupant }
 
-A space can potentially hold a MovingObject.
 
-Todo: it feels wrong to have the "kind" property here... How can I fix that?
-
--}
 type GameElement
     = Block
-    | Space { occupant : Maybe MovingObject, kind : SpaceType }
-
-
-type alias Occupyable r =
-    { r | occupant : Maybe MovingObject, kind : SpaceType }
+    | Space Occupyable
 
 
 fromString : String -> GameElement
 fromString str =
-    case str of
-        "#" ->
-            Block
+    let
+        moods =
+            Cyclic.fromElements Neutral [ Content, Happy, Ecstatic, Happy, Content ]
+    in
+        case str of
+            "#" ->
+                Block
 
-        "." ->
-            Space { kind = Path, occupant = Nothing }
+            "." ->
+                Space { kind = Path, occupant = None }
 
-        "c" ->
-            Space { kind = Path, occupant = Just Crate }
+            "c" ->
+                Space { kind = Path, occupant = Crate }
 
-        "x" ->
-            Space { kind = GoalField, occupant = Nothing }
+            "p" ->
+                Space { kind = Path, occupant = Player moods }
 
-        "w" ->
-            Space { kind = GoalField, occupant = Just Crate }
+            "x" ->
+                Space { kind = GoalField, occupant = None }
 
-        "q" ->
-            Space { kind = GoalField, occupant = Just Player }
+            "w" ->
+                Space { kind = GoalField, occupant = Crate }
 
-        "p" ->
-            Space { kind = Path, occupant = Just Player }
+            "q" ->
+                Space { kind = GoalField, occupant = Player moods }
 
-        _ ->
-            Block
+            _ ->
+                Block
 
 
 isGoalField : GameElement -> Bool
-isGoalField obj =
-    case obj of
+isGoalField elm =
+    case elm of
         Space { kind } ->
-            case kind of
-                GoalField ->
-                    True
-
-                _ ->
-                    False
+            kind == GoalField
 
         _ ->
             False
 
 
 hasCrate : GameElement -> Bool
-hasCrate obj =
-    case obj of
+hasCrate elm =
+    case elm of
         Space { occupant } ->
-            case occupant of
-                Just Crate ->
-                    True
-
-                _ ->
-                    False
+            occupant == Crate
 
         _ ->
             False
 
 
-occupyWith : MovingObject -> Occupyable r -> GameElement
-occupyWith obj r =
-    Space { kind = r.kind, occupant = Just obj }
+occupyWith : Occupant -> Occupyable -> GameElement
+occupyWith occupant occupyable =
+    Space { occupyable | occupant = occupant }
 
 
-deoccupy : Occupyable r -> GameElement
-deoccupy r =
-    Space { kind = r.kind, occupant = Nothing }
+deoccupy : Occupyable -> GameElement
+deoccupy occupyable =
+    Space { occupyable | occupant = None }
