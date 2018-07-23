@@ -105,16 +105,13 @@ body {
 	float: right;
 }
 
-canvas {
-	background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA');
-	background-size: 16px 16px;
-
-	display: block;
-
-	height: 272px;
-	width: 304px;
-
+.grid {
+	display: grid;
+	grid-template-columns: repeat(19, 1fr);
+	grid-template-rows: repeat(17, 1fr);
 	margin: 0 auto;
+	width: 304px;
+	height: 272px;
 }
 
 .undo-buttons {

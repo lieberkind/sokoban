@@ -88,11 +88,10 @@ withDefaults : List ( String, String ) -> Attribute msg
 withDefaults attrs =
     style
         (List.append
-            [ ( "background-size", "16px 16px" )
+            [ ( "background-size", "100% 100%" )
             , ( "background-repeat", "no-repeat" )
-            , ( "width", "16px" )
-            , ( "height", "16px" )
-            , ( "float", "left" )
+            , ( "width", "100%" )
+            , ( "height", "100%" )
             ]
             attrs
         )
