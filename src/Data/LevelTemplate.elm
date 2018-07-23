@@ -1,11 +1,10 @@
 module Data.LevelTemplate exposing (..)
 
-import Matrix exposing (Location)
 import List.Nonempty as NE exposing (Nonempty, (:::))
 
 
 type alias LevelTemplate =
-    { levelNumber : Int, grid : List String, playerLocation : Location }
+    { levelNumber : Int, grid : List String, playerLocation : Int }
 
 
 level0 : LevelTemplate
@@ -30,7 +29,7 @@ level0 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 9, 6 )
+    , playerLocation = 177
     }
 
 
@@ -56,7 +55,7 @@ level1 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 10, 11 )
+    , playerLocation = 201
     }
 
 
@@ -82,7 +81,7 @@ level2 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 7, 10 )
+    , playerLocation = 143
     }
 
 
@@ -108,7 +107,7 @@ level3 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 4, 15 )
+    , playerLocation = 91
     }
 
 
@@ -134,7 +133,7 @@ level4 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 13, 10 )
+    , playerLocation = 257
     }
 
 
@@ -160,7 +159,7 @@ level5 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 10, 14 )
+    , playerLocation = 204
     }
 
 
@@ -186,7 +185,7 @@ level6 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 4, 12 )
+    , playerLocation = 88
     }
 
 
@@ -212,7 +211,7 @@ level7 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 4, 8 )
+    , playerLocation = 84
     }
 
 
@@ -238,7 +237,7 @@ level8 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 6, 2 )
+    , playerLocation = 116
     }
 
 
@@ -264,7 +263,7 @@ level9 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 11, 2 )
+    , playerLocation = 211
     }
 
 
@@ -290,7 +289,7 @@ level10 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 1, 2 )
+    , playerLocation = 21
     }
 
 
@@ -316,7 +315,7 @@ level11 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 3, 7 )
+    , playerLocation = 64
     }
 
 
@@ -342,7 +341,7 @@ level12 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 5, 9 )
+    , playerLocation = 104
     }
 
 
@@ -368,7 +367,7 @@ level13 =
         , "###################"
         , "###################"
         ]
-    , playerLocation = ( 6, 6 )
+    , playerLocation = 120
     }
 
 
@@ -399,5 +398,5 @@ gameOver =
         , "#xxxx##x##xxxxx##x#"
         , "###################"
         ]
-    , playerLocation = ( 3, 4 )
+    , playerLocation = 61
     }

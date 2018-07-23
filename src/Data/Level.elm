@@ -13,14 +13,18 @@ module Data.Level
         , undo
         )
 
-import Matrix exposing (Matrix, Location)
+import Array exposing (Array)
 import Data.LevelTemplate exposing (LevelTemplate)
 import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
 import Data.Movement exposing (Direction(..), MoveError(..))
 
 
 type alias Grid =
-    Matrix GameElement
+    Array GameElement
+
+
+type alias Location =
+    Int
 
 
 
@@ -49,8 +53,9 @@ fromTemplate tmpl =
         fromStrings strs =
             strs
                 |> List.map (String.split "")
-                |> Matrix.fromList
-                |> Matrix.map Element.fromString
+                |> List.concat
+                |> Array.fromList
+                |> Array.map Element.fromString
 
         levelState =
             { grid = (fromStrings tmpl.grid), playerLocation = tmpl.playerLocation, moves = 0, pushes = 0 }
@@ -61,8 +66,7 @@ fromTemplate tmpl =
 hasWon : Level -> Bool
 hasWon { current } =
     current.grid
-        |> Matrix.toList
-        |> List.foldr (++) []
+        |> Array.toList
         |> List.filter Element.isGoalField
         |> List.all Element.hasCrate
 
@@ -96,13 +100,13 @@ move direction level =
         movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
         movePlayer o1 o2 grid =
             grid
-                |> Matrix.set lvl.playerLocation (Element.deoccupy o1)
-                |> Matrix.set oneSpaceAway (Element.occupyWith Player o2)
+                |> Array.set lvl.playerLocation (Element.deoccupy o1)
+                |> Array.set oneSpaceAway (Element.occupyWith Player o2)
 
         pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
         pushCrate o1 o2 o3 grid =
             movePlayer o1 o2 grid
-                |> Matrix.set twoSpacesAway (Element.occupyWith Crate o3)
+                |> Array.set twoSpacesAway (Element.occupyWith Crate o3)
     in
         case
             ( elementAt lvl.playerLocation grid
@@ -205,24 +209,20 @@ number lvl =
 
 getAdjacentLocation : Location -> Direction -> Location
 getAdjacentLocation location direction =
-    let
-        ( row, col ) =
-            location
-    in
-        case direction of
-            Left ->
-                Matrix.loc row (col - 1)
+    case direction of
+        Left ->
+            location - 1
 
-            Up ->
-                Matrix.loc (row - 1) col
+        Up ->
+            location - 19
 
-            Right ->
-                Matrix.loc row (col + 1)
+        Right ->
+            location + 1
 
-            Down ->
-                Matrix.loc (row + 1) col
+        Down ->
+            location + 19
 
 
 elementAt : Location -> Grid -> GameElement
-elementAt loc grid =
-    Matrix.get loc grid |> Maybe.withDefault Block
+elementAt location grid =
+    Array.get location grid |> Maybe.withDefault Block
