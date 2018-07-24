@@ -16,13 +16,10 @@ undoButtons { undoMove, undoLevel } =
 arrowKeys : { up : msg, right : msg, down : msg, left : msg } -> Html msg
 arrowKeys { up, right, down, left } =
     div [ class "arrow-buttons" ]
-        [ div [ class "top-row" ]
-            [ keyboardButton [ "arrow-button", "up-arrow" ] up "▲" ]
-        , div [ class "bottom-row" ]
-            [ keyboardButton [ "arrow-button", "up-arrow" ] left "◀"
-            , keyboardButton [ "arrow-button", "down-arrow" ] down "▼"
-            , keyboardButton [ "arrow-button", "right-arrow" ] right "▶"
-            ]
+        [ keyboardButton [ "arrow-button", "arrow-up" ] up "▲"
+        , keyboardButton [ "arrow-button", "arrow-left" ] left "◀"
+        , keyboardButton [ "arrow-button", "arrow-down" ] down "▼"
+        , keyboardButton [ "arrow-button", "arrow-right" ] right "▶"
         ]
 
 

@@ -14,13 +14,11 @@ type alias GameInfo =
 gameInfo : String -> String -> String -> Html msg
 gameInfo str1 str2 str3 =
     div [ class "game-info" ]
-        [ div [ class "movement-info" ]
-            [ div [ class "moves" ]
-                [ text str1 ]
-            , div [ class "pushes" ]
-                [ text str2 ]
-            ]
-        , div [ class "game-feedback" ]
+        [ div [ class "moves" ]
+            [ text str1 ]
+        , div [ class "pushes" ]
+            [ text str2 ]
+        , div [ class "feedback" ]
             [ text str3 ]
         ]
 
