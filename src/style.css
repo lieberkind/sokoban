@@ -68,41 +68,44 @@ body {
 	width: 304px;
 }
 
+/*
+|------------------------------------------------------------------------------
+| GAME INFO
+|------------------------------------------------------------------------------
+*/
 .game-info {
 	background: rgb(116, 117, 125);
+	display: grid;
+	grid-gap: 2px;
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-areas:
+		'moves moves pushes pushes'
+		'feedback feedback feedback feedback';
+	margin: 0 auto;
 	padding: 2px;
 	width: 304px;
-
-	margin: 0 auto;
 }
 
 .moves,
 .pushes,
-.game-feedback {
+.feedback {
 	background: #fff;
 	border: 1px solid #000;
 	min-height: calc(1em + 8px);
-	/* For some reason, it's not 6 but 8 pixels we need here... */
-	padding: 2px;
+	padding: 2px 0;
 	text-align: center;
 }
 
-.movement-info {
-	margin-bottom: 2px;
-	overflow: hidden;
-}
-
-.moves,
-.pushes {
-	width: calc(50% - 1px);
-}
-
 .moves {
-	float: left;
+	grid-area: moves;
 }
 
 .pushes {
-	float: right;
+	grid-area: pushes;
+}
+
+.feedback {
+	grid-area: feedback;
 }
 
 /*
@@ -144,15 +147,9 @@ body {
 
 /*
 |------------------------------------------------------------------------------
-| BUTTONS
+| KEYBOARD BUTTON
 |------------------------------------------------------------------------------
 */
-.undo-buttons {
-	width: 308px;
-	margin: 10px auto 30px;
-	overflow: hidden;
-}
-
 .keyboard-button {
 	touch-action: manipulation;
 	background: #bbb;
@@ -163,14 +160,9 @@ body {
 	display: block;
 	font-family: 'Share Tech Mono', 'Arial', sans-serif;
 	font-size: 14px;
-	/*font-weight: bold;*/
 	padding: 10px;
 	text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.3), 0px -1px 0px rgba(0, 0, 0, 0.7);
 	text-transform: uppercase;
-}
-
-.keyboard-button:focus {
-	outline: none;
 }
 
 .keyboard-button:active,
@@ -181,26 +173,34 @@ body {
 	border-bottom: 4px solid #ccc;
 }
 
-.undo-move,
-.undo-level {
-	width: calc(50% - 2px);
+.keyboard-button:focus {
+	outline: none;
 }
 
-.undo-move {
-	float: left;
-}
-
-.undo-level {
-	float: right;
-}
-
-.arrow-buttons {
-	margin: 0 auto;
+/*
+|------------------------------------------------------------------------------
+| UNDO BUTTONS 
+|------------------------------------------------------------------------------
+*/
+.undo-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-column-gap: 4px;
+	margin: 10px auto 30px;
 	width: 304px;
 }
 
-.top-row,
-.bottom-row {
+/*
+|------------------------------------------------------------------------------
+| ARROW BUTTONS
+|------------------------------------------------------------------------------
+*/
+.arrow-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		'. arrow-up .'
+		'arrow-left arrow-down arrow-right';
 	margin: 0 auto;
 	width: 225px;
 }
@@ -210,18 +210,27 @@ body {
 	height: 75px;
 }
 
-.bottom-row {
-	overflow: hidden;
+.arrow-up {
+	grid-area: arrow-up;
 }
 
-.bottom-row .arrow-button {
-	float: left;
+.arrow-left {
+	grid-area: arrow-left;
 }
 
-.up-arrow {
-	margin: 0 auto;
+.arrow-down {
+	grid-area: arrow-down;
 }
 
+.arrow-right {
+	grid-area: arrow-right;
+}
+
+/*
+|------------------------------------------------------------------------------
+| POPUPS
+|------------------------------------------------------------------------------
+*/
 .popup {
 	background: #fff;
 	border: 5px solid rgb(9, 0, 153);
@@ -303,6 +312,11 @@ body {
 	white-space: pre-wrap;
 }
 
+/*
+|------------------------------------------------------------------------------
+| SOKO
+|------------------------------------------------------------------------------
+*/
 .soko {
 	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA');
 	background-size: cover;
