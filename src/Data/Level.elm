@@ -3,7 +3,7 @@ module Data.Level
         ( Grid
         , Level
         , fromTemplate
-        , grid
+        , getGrid
         , hasWon
         , move
         , moves
@@ -71,8 +71,8 @@ hasWon { current } =
         |> List.all Element.hasCrate
 
 
-grid : Level -> Grid
-grid { current } =
+getGrid : Level -> Grid
+getGrid { current } =
     current.grid
 
 
@@ -98,14 +98,14 @@ move direction level =
             getAdjacentLocation oneSpaceAway direction
 
         movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
-        movePlayer o1 o2 grid =
-            grid
+        movePlayer o1 o2 grid_ =
+            grid_
                 |> Array.set lvl.playerLocation (Element.deoccupy o1)
                 |> Array.set oneSpaceAway (Element.occupyWith Player o2)
 
         pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
-        pushCrate o1 o2 o3 grid =
-            movePlayer o1 o2 grid
+        pushCrate o1 o2 o3 grid_ =
+            movePlayer o1 o2 grid_
                 |> Array.set twoSpacesAway (Element.occupyWith Crate o3)
     in
         case

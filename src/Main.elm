@@ -1,13 +1,15 @@
-port module Main exposing (..)
+port module Main exposing (Flags, Model, clearProgress, endOfLevelKeyDecoder, getErrorMessage, inGameKeyDecoder, init, initialModel, keyToMsg, main, saveProgress, subscriptions, update, view)
 
+import Browser as Browser
+import Browser.Events as Events
 import Data.Game as Game exposing (Game)
 import Data.Level as Level exposing (Level)
 import Data.LevelTemplate exposing (..)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Progress exposing (Progress)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, style, attribute, href)
-import Keyboard exposing (..)
+import Html.Attributes exposing (attribute, class, classList, href, style)
+import Json.Decode as Decode
 import Msg exposing (..)
 import Set exposing (Set, insert, remove)
 import Views.Controls
@@ -17,12 +19,13 @@ import Views.Level
 import Views.Popups
 
 
+
 -- MAIN
 
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -62,13 +65,13 @@ initialModel flags =
         message =
             Game.currentLevel game
                 |> Maybe.map Level.number
-                |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
+                |> Maybe.map (\levelNumber -> "Playing level " ++ String.fromInt levelNumber ++ "...")
     in
-        { keysDown = Set.empty
-        , game = game
-        , message = message
-        , isStartingOver = False
-        }
+    { keysDown = Set.empty
+    , game = game
+    , message = message
+    , isStartingOver = False
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -111,7 +114,7 @@ update msg model =
                         Result.Err err ->
                             { model | game = model.game, message = Just (getErrorMessage err) }
             in
-                ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         UndoMove ->
             ( { model | game = Game.undoMove model.game, message = Just "Whew! That was close!" }, Cmd.none )
@@ -127,14 +130,14 @@ update msg model =
                 newMessage =
                     Game.currentLevel newGame
                         |> Maybe.map Level.number
-                        |> Maybe.map (\levelNumber -> "Playing level " ++ toString levelNumber ++ "...")
+                        |> Maybe.map (\levelNumber -> "Playing level " ++ String.fromInt levelNumber ++ "...")
 
                 cmd =
                     Game.toProgress newGame
                         |> Maybe.map saveProgress
                         |> Maybe.withDefault Cmd.none
             in
-                ( { model | game = newGame, message = newMessage }, cmd )
+            ( { model | game = newGame, message = newMessage }, cmd )
 
         RequestStartOverConfirmation ->
             ( { model | isStartingOver = True }, Cmd.none )
@@ -159,93 +162,110 @@ view { game, message, isStartingOver } =
         level =
             Game.currentLevel game
     in
-        case level of
-            Just lvl ->
-                div []
-                    [ Views.Header.renderHeader ("Level " ++ toString (Level.number lvl))
-                    , div [ style [ ( "position", "relative" ) ] ]
-                        [ Html.map
-                            (\b ->
-                                if b then
-                                    ConfirmStartOver
-                                else
-                                    CancelStartOver
-                            )
-                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , Html.map (\_ -> AdvanceLevel) (Views.Popups.endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> toString) ++ "\nwith " ++ (Level.moves lvl |> toString) ++ " moves \nand " ++ (Level.pushes lvl |> toString) ++ " pushes"))
-                        , Views.Level.renderLevel lvl
-                        , Views.GameInfo.renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
-                        , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
-                        , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
-                        ]
-                    ]
+    case level of
+        Just lvl ->
+            div []
+                [ Views.Header.renderHeader ("Level " ++ String.fromInt (Level.number lvl))
+                , div [ style "position" "relative" ]
+                    [ Html.map
+                        (\b ->
+                            if b then
+                                ConfirmStartOver
 
-            Nothing ->
-                div []
-                    [ Views.Header.renderHeader "Game Over"
-                    , div [ style [ ( "position", "relative" ) ] ]
-                        [ Html.map
-                            (\b ->
-                                if b then
-                                    ConfirmStartOver
-                                else
-                                    CancelStartOver
-                            )
-                            (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
-                        , Views.Level.renderLevel (Level.fromTemplate gameOver)
-                        , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
-                        ]
+                            else
+                                CancelStartOver
+                        )
+                        (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
+                    , Html.map (\_ -> AdvanceLevel) (Views.Popups.endOfLevel (Game.levelWon game) ("You completed level " ++ (Level.number lvl |> String.fromInt) ++ "\nwith " ++ (Level.moves lvl |> String.fromInt) ++ " moves \nand " ++ (Level.pushes lvl |> String.fromInt) ++ " pushes"))
+                    , Views.Level.renderLevel lvl
+                    , Views.GameInfo.renderGameInfo { moves = Level.moves lvl, pushes = Level.pushes lvl, message = message }
+                    , Views.Controls.undoButtons { undoMove = UndoMove, undoLevel = UndoLevel }
+                    , Views.Controls.arrowKeys { up = Move Up, right = Move Right, down = Move Down, left = Move Left }
                     ]
+                ]
+
+        Nothing ->
+            div []
+                [ Views.Header.renderHeader "Game Over"
+                , div [ style "position" "relative" ]
+                    [ Html.map
+                        (\b ->
+                            if b then
+                                ConfirmStartOver
+
+                            else
+                                CancelStartOver
+                        )
+                        (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
+                    , Views.Level.renderLevel (Level.fromTemplate gameOver)
+                    , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
+                    ]
+                ]
 
 
 
 -- SUBSCRIPTIONS
 
 
-keyCodeToMsg : KeyCode -> Msg
-keyCodeToMsg keyCode =
-    case keyCode of
-        37 ->
+inGameKeyDecoder : Decode.Decoder Msg
+inGameKeyDecoder =
+    Decode.map keyToMsg (Decode.field "key" Decode.string)
+
+
+endOfLevelKeyDecoder : Decode.Decoder Msg
+endOfLevelKeyDecoder =
+    Decode.map
+        (\key ->
+            case key of
+                "Enter" ->
+                    AdvanceLevel
+
+                _ ->
+                    NoOp
+        )
+        (Decode.field "key" Decode.string)
+
+
+keyToMsg : String -> Msg
+keyToMsg key =
+    case key of
+        "ArrowLeft" ->
             Move Left
 
-        38 ->
-            Move Up
-
-        39 ->
+        "ArrowRight" ->
             Move Right
 
-        40 ->
+        "ArrowUp" ->
+            Move Up
+
+        "ArrowDown" ->
             Move Down
 
-        76 ->
+        "L" ->
             UndoLevel
 
-        77 ->
+        "l" ->
+            UndoLevel
+
+        "M" ->
+            UndoMove
+
+        "m" ->
             UndoMove
 
         _ ->
             NoOp
 
 
-keyUpToMsg : KeyCode -> Msg
-keyUpToMsg keyCode =
-    NoOp
-
-
 subscriptions : Model -> Sub Msg
 subscriptions { game } =
     if Game.isPlaying game then
         Sub.batch
-            [ Keyboard.downs keyCodeToMsg
-            , Keyboard.ups keyUpToMsg
+            [ Events.onKeyDown inGameKeyDecoder
             ]
+
     else if Game.levelWon game then
-        Keyboard.downs
-            (\keyCode ->
-                if keyCode == 13 then
-                    AdvanceLevel
-                else
-                    NoOp
-            )
+        Events.onKeyDown endOfLevelKeyDecoder
+
     else
         Sub.none

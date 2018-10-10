@@ -1,0 +1,343 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+}
+
+html,
+body {
+  font-family: "Share Tech Mono", "Arial", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: cyan;
+}
+
+.blur {
+  background-color: rgba(0, 0, 0, 0);
+  display: none;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+}
+
+.blur.visible {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.app-container {
+  padding: 2em;
+}
+
+.title {
+  color: yellow;
+  font-family: "Press Start 2P";
+  font-size: 3.6em;
+  margin-bottom: 0.1em;
+  padding-left: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+}
+
+.level-status {
+  color: red;
+  font-weight: bold;
+  margin: 0 auto 8px;
+  text-align: center;
+  text-transform: uppercase;
+  width: 304px;
+}
+
+.game-container {
+  border: 2px solid #999;
+  border-right: 2px solid #eee;
+  border-bottom: 2px solid #eee;
+  box-sizing: content-box;
+  margin: 0 auto;
+  position: relative;
+  width: 304px;
+}
+
+/*
+|------------------------------------------------------------------------------
+| GAME INFO
+|------------------------------------------------------------------------------
+*/
+.game-info {
+  background: rgb(116, 117, 125);
+  display: grid;
+  grid-gap: 2px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-areas:
+    "moves moves pushes pushes"
+    "feedback feedback feedback feedback";
+  margin: 0 auto;
+  padding: 2px;
+  width: 304px;
+}
+
+.moves,
+.pushes,
+.feedback {
+  background: #fff;
+  border: 1px solid #000;
+  min-height: calc(1em + 8px);
+  padding: 2px 0;
+  text-align: center;
+}
+
+.moves {
+  grid-area: moves;
+}
+
+.pushes {
+  grid-area: pushes;
+}
+
+.feedback {
+  grid-area: feedback;
+}
+
+/*
+|------------------------------------------------------------------------------
+| GRID
+|------------------------------------------------------------------------------
+*/
+.grid {
+  display: grid;
+  grid-template-columns: repeat(19, 1fr);
+  grid-template-rows: repeat(17, 1fr);
+  margin: 0 auto;
+  width: 304px;
+  height: 272px;
+}
+
+.game-element {
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+}
+
+.game-element.block {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAaklEQVRYR+3XOQ7AIAxE0XD/4yQVS8HJjIRkCqdIBVPkUyMYP7mZZGZ2Cc5T2/w1/S6AT95z1wh8BvALu9bCJ/f3XztAAAQQQAABBBBAAAEEEJAJxMKwqxfEd1cvkAW4S53tODaWYwLqAAMAoAJYuhkgzQAAAABJRU5ErkJgggAA");
+}
+
+.game-element.crate {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAwklEQVRYR+2W2w2AIAwAYThmUSdSZ2E4jMQmyFtsLTH4SaS9XqBFCuZPMucXNQCGCNLm7hrAVr4KhSJgEdqPUzTABkCSWO2bNaCnGUwkDbABkJx2qBzKzhnoA8AgYcjrgj820C8AtKxKQ/gG2ABSzbpgAs8AG0DNmDovd8LEewPsALeOHRmI/z8Dw8AwgGzAfwfEwtuLFUxDpE7YDtD4JoZO6GyPluIuxg18DdCYL7ct29QDA5wABLnLIWtnXjlS4x8HfjeSIYxtab0AAAAASUVORK5CYIIA");
+}
+
+.game-element.goal-field {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYklEQVRYR+3VywoAIAhEUf3/jzYi2rjTgR5w3UvjIdTNLOxiOQEQQAABBL4ViFgnxH1u8361b8EzAfLsVRFZ4HiATa8+vPvLAtcD5MnVz1gWeC5AfwOsTlmAAAgggAACqsAA1gU4AQHGir0AAAAASUVORK5CYIIA");
+}
+
+.game-element.path {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAXklEQVRYR+3WQQoAIAhEUb3/oW0RbtzZQBb89tL0ECa3iLDB4wRAAAEEEPhXwH03iFgl513wTIDapE0RXeB6gKQXL87xvsB4gPpycRn7As8FEP+TugABEEAAAQREgQWkNW/BkvP04AAAAABJRU5ErkJgggAA");
+}
+
+/*
+|------------------------------------------------------------------------------
+| KEYBOARD BUTTON
+|------------------------------------------------------------------------------
+*/
+.keyboard-button {
+  touch-action: manipulation;
+  background: #bbb;
+  border: 4px solid #ddd;
+  border-right: 4px solid #666;
+  border-bottom: 4px solid #666;
+  color: #666;
+  display: block;
+  font-family: "Share Tech Mono", "Arial", sans-serif;
+  font-size: 14px;
+  padding: 10px;
+  text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.3),
+    0px -1px 0px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+}
+
+.keyboard-button:active,
+.keyboard-button.active {
+  background: #aaa;
+  border: 4px solid #666;
+  border-right: 4px solid #ccc;
+  border-bottom: 4px solid #ccc;
+}
+
+.keyboard-button:focus {
+  outline: none;
+}
+
+/*
+|------------------------------------------------------------------------------
+| UNDO BUTTONS 
+|------------------------------------------------------------------------------
+*/
+.undo-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 4px;
+  margin: 10px auto 30px;
+  width: 304px;
+}
+
+/*
+|------------------------------------------------------------------------------
+| ARROW BUTTONS
+|------------------------------------------------------------------------------
+*/
+.arrow-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas:
+    ". arrow-up ."
+    "arrow-left arrow-down arrow-right";
+  margin: 0 auto;
+  width: 225px;
+}
+
+.arrow-button {
+  width: 75px;
+  height: 75px;
+}
+
+.arrow-up {
+  grid-area: arrow-up;
+}
+
+.arrow-left {
+  grid-area: arrow-left;
+}
+
+.arrow-down {
+  grid-area: arrow-down;
+}
+
+.arrow-right {
+  grid-area: arrow-right;
+}
+
+/*
+|------------------------------------------------------------------------------
+| POPUPS
+|------------------------------------------------------------------------------
+*/
+.popup {
+  background: #fff;
+  border: 5px solid rgb(9, 0, 153);
+  box-sizing: border-box;
+  left: calc(50% - 136px);
+  padding: calc(1em + 10px + 15px) 15px 50px 75px;
+  position: absolute;
+  top: 48px;
+  transform: scale(0, 0);
+  transition: transform 0.2s ease-in-out;
+  width: 272px;
+  z-index: 2;
+}
+
+.popup.visible {
+  transform: scale(1, 1);
+}
+
+.popup:before {
+  background: rgb(9, 0, 153);
+  color: #fff;
+  content: "Sokoban";
+  display: block;
+  font-weight: bold;
+  left: 1px;
+  padding: 5px 0;
+  position: absolute;
+  text-align: center;
+  top: 1px;
+  width: calc(100% - 2px);
+}
+
+.popup:after {
+  background-color: rgb(255, 255, 0);
+  border: 1px solid #000;
+  border-radius: 50%;
+  content: "!";
+  display: block;
+  font-family: "Share Tech Mono", "Arial", sans-serif;
+  font-size: 2.3em;
+  height: 1em;
+  position: absolute;
+  text-align: center;
+  top: calc(0.3333em + 10px + 22px);
+  left: 20px;
+  width: 1em;
+}
+
+.popup .keyboard-button {
+  border-width: 2px;
+  color: #000;
+  display: block;
+  font-size: 1em;
+  padding: 2px 10px;
+  text-align: center;
+  min-width: 60px;
+}
+
+.popup .confirm {
+  bottom: 10px;
+  position: absolute;
+  left: 150px;
+}
+
+.popup .cancel {
+  bottom: 10px;
+  position: absolute;
+  left: 75px;
+}
+
+.popup .dismiss-popup {
+  position: absolute;
+  bottom: 10px;
+  left: calc(50% - 30px);
+  width: 60px;
+}
+
+.popup .preserve-line-breaks {
+  white-space: pre-wrap;
+}
+
+/*
+|------------------------------------------------------------------------------
+| SOKO
+|------------------------------------------------------------------------------
+*/
+.soko {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA");
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+}
+
+.soko.soko-0 {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA70lEQVRYR+2XURKAIAhE9f6HtqnJmUJWWCPto/4ygscGmDmNXwW8mhmXlLFw/A5AKelwnHNCcMdzGV0xvi0hv817XwZQM5ffGykRocBcgKaS2XIFJSprC9bAMoBL4JvkkrQmiNarH6s7esIuA+j2eRGp1wzkurc7NAWWAbjajJnzmq3M+Hq/DGBKYFQTuwI/wHIF6ufx7vNUI1j/DWYXsHuQpGMAukpQaSvGaE9wT8KZAKFKhO2Gowo8AXikhBW487/Q5Do0JyIBKCW8gRkFPgPATkzXDHMZaWdCa8LtpztP57iMgKN3Dqce6tMmBGAD3QtmGY9VnUMAAAAASUVORK5CYIIA");
+}
+
+.soko.soko-1 {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA90lEQVRYR+2XwRLDIAhE9f8/2kyZaFsE2U1i9dDcYlAf64KTnK4/xZmamSWpYLXwXIBSkmyQc9KQMq53NzKRocE6ko+rwI4AZub6vDu5TqkMJWkF1gC0DFm7KpNcVmAZQDV65Pb63SwV2+VfoSNhoXKbATA229vVcjpNIW/8PEOvT1gKLAOAyozp81aszvjzfRnATzb2OuZLgT/AcgXq8UCNh62CqJOGVcDeQRqQARgq0WVe+utupM5znbBhzgPglAhM4WVep9G3IWvCOwC3lIg2RhTYBoACQTNnFNgGgO2YUA+DgpTz0ZYNrQ0FOaU39+cUqPdHAA6h4GgZpdYA/gAAAABJRU5ErkJgggAA");
+}
+
+.soko.soko-2 {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA/ElEQVRYR+2X4Q7DIAiE5f0f2qWNNB3l5DA6t2T908QifD0QVcr4U8FUybhMGRvHawBqLadjkYLgzu82umP8NoT8PuZ9M4D75zbfSIkZCnwW4FHJ2XIFJWprC9bANoBbYEryaM1Hq6Mn7DaAfuCWW2noV6rReJMIKeEpsA2AktwSqwJoPOoT93nbAKjAUbVnv+ufH+8/wHYFNH3sPp9Kd3RuCFdBdg+ydBmArhKX44pOYtryfOSJnXA9wJgSujmYHKzbDW0qFgBwSvCXA7c4mCIf6hOR9MrNAKSUYAP/JEC2Y1LqUkbenTDqcMftjunZlBFwtOZyylA3mykALw46bhmB1MFZAAAAAElFTkSuQmCC");
+}
+
+.soko.soko-3 {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABB0lEQVRYR9WW2w7EIAhE5f8/2k3d2ChyGUzVdl82aZUehgGlNP/LylaKhAwtZoHXAOScSmCipMGV9/zrwuLukRZ32PdmADFzXm9NiScU2AswODlqV8Wi3FuqB44BNB/uJJ8VwOsOK+4xALvPa205OnuOzglJgWMAZpvNesCbE23cYwDQgImccMjamvn1/w2ApzxQ1QkrsBKgQkHnfM7aPeQfhqhH9eaB2wXDvFkIAClh55/ua5SX+SVWUUxoGbMUOwAwJVgpau3RzHk3SLPDVmIDAKREt6hJw7sHIAq8BsAE8U47xej3tsiAg84MVPpICXiS0MT0Mv80gGb8qaQiHhBLIQyQUMwfGRx6GRgbXCgAAAAASUVORK5CYIIA");
+}

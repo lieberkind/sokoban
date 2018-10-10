@@ -1,6 +1,6 @@
 all: dist index css elm js favicon
 
-build: dist index css elm-package elm js favicon
+build: npx elm-make build
 
 dist:
 	mkdir -p ./dist/js

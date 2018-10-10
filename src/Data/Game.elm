@@ -18,7 +18,7 @@ import Data.Level as Level exposing (..)
 import Data.Movement exposing (Direction, MoveError(..))
 import Data.LevelTemplate as LevelTemplate exposing (LevelTemplate)
 import Data.Progress exposing (Progress)
-import List.Nonempty as NE exposing (Nonempty(Nonempty))
+import List.Nonempty as NE exposing (Nonempty(..))
 
 
 type GameState
@@ -178,7 +178,7 @@ updateGame game level =
                 Playing
 
         newLevels =
-            Nonempty level (NE.tail game.levels)
+             Nonempty level (NE.tail game.levels)
     in
         { game | levels = newLevels, state = newGameState }
 

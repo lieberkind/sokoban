@@ -1,7 +1,6 @@
 module Msg exposing (..)
 
 import Data.Movement exposing (Direction)
-import Keyboard exposing (KeyCode)
 
 
 type Msg
@@ -11,8 +10,6 @@ type Msg
     | RequestStartOverConfirmation
     | ConfirmStartOver
     | CancelStartOver
-    | KeyDown KeyCode
-    | KeyUp KeyCode
     | AdvanceLevel
     | UpdateSoko
     | NoOp

@@ -26,14 +26,14 @@ gameInfo str1 str2 str3 =
 renderGameInfo : GameInfo -> Html msg
 renderGameInfo { moves, pushes, message } =
     gameInfo
-        ((toString moves) ++ " moves")
-        ((toString pushes) ++ " pushes")
+        ((String.fromInt moves) ++ " moves")
+        ((String.fromInt pushes) ++ " pushes")
         (Maybe.withDefault "" message)
 
 
 renderGameOverInfo : GameInfo -> Html msg
 renderGameOverInfo { moves, pushes, message } =
     gameInfo
-        ((toString moves) ++ " total moves")
-        ((toString pushes) ++ " total pushes")
+        ((String.fromInt moves) ++ " total moves")
+        ((String.fromInt pushes) ++ " total pushes")
         (Maybe.withDefault "" message)

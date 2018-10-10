@@ -1,6 +1,6 @@
 module Data.LevelTemplate exposing (..)
 
-import List.Nonempty as NE exposing (Nonempty, (:::))
+import List.Nonempty as NE exposing (Nonempty)
 
 
 type alias LevelTemplate =

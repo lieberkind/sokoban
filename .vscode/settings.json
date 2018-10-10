@@ -1,0 +1,3 @@
+{
+  "elm.makeCommand": "./node_modules/.bin/elm-make"
+}
