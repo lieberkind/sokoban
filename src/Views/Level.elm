@@ -11,7 +11,7 @@ renderLevel : Level -> Html msg
 renderLevel level =
     div
         [ class "grid" ]
-        (Level.grid level
+        (Level.getGrid level
             |> Array.toList
             |> List.map Views.GameElement.renderGameElement
         )

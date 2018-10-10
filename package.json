@@ -1,25 +1,23 @@
 {
-	"name": "sokoban",
-	"version": "1.0.0",
-	"description": "A Elm port of the Sokoban game for Windows 3.x",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/lieberkind/sokoban.git"
-	},
-	"author": "Tomas Lieberkind",
-	"license": "ISC",
-	"bugs": {
-		"url": "https://github.com/lieberkind/sokoban/issues"
-	},
-	"homepage": "https://github.com/lieberkind/sokoban#readme",
-	"dependencies": {
-		"babel-polyfill": "^6.9.1",
-		"babel-preset-es2015": "^6.13.2",
-		"babelify": "^7.3.0",
-		"browserify": "^13.1.0",
-		"elm": "^0.18.0"
-	}
+  "name": "sokoban",
+  "version": "1.0.0",
+  "description": "An implementation of the Sokoban game for Windows 3.x, made in order to learn Elm.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "elm-app build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lieberkind/sokoban.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lieberkind/sokoban/issues"
+  },
+  "homepage": "https://github.com/lieberkind/sokoban#readme",
+  "devDependencies": {
+    "create-elm-app": "^2.1.0"
+  }
 }
