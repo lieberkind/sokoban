@@ -1,4 +1,4 @@
-module Data.GameElement exposing (..)
+module Data.GameElement exposing (GameElement(..), MovingObject(..), SpaceType(..), deoccupy, fromString, hasCrate, isGoalField, occupyWith)
 
 
 type SpaceType
@@ -20,11 +20,8 @@ Todo: it feels wrong to have the "kind" property here... How can I fix that?
 -}
 type GameElement
     = Block
-    | Space { occupant : Maybe MovingObject, kind : SpaceType }
-
-
-type alias Occupyable r =
-    { r | occupant : Maybe MovingObject, kind : SpaceType }
+    | OccupiedSpace SpaceType MovingObject
+    | FreeSpace SpaceType
 
 
 fromString : String -> GameElement
@@ -34,62 +31,65 @@ fromString str =
             Block
 
         "." ->
-            Space { kind = Path, occupant = Nothing }
+            FreeSpace Path
 
         "c" ->
-            Space { kind = Path, occupant = Just Crate }
+            OccupiedSpace Path Crate
 
         "x" ->
-            Space { kind = GoalField, occupant = Nothing }
+            FreeSpace GoalField
 
         "w" ->
-            Space { kind = GoalField, occupant = Just Crate }
+            OccupiedSpace GoalField Crate
 
         "q" ->
-            Space { kind = GoalField, occupant = Just Player }
+            OccupiedSpace GoalField Player
 
         "p" ->
-            Space { kind = Path, occupant = Just Player }
+            OccupiedSpace Path Player
 
         _ ->
             Block
 
 
 isGoalField : GameElement -> Bool
-isGoalField obj =
-    case obj of
-        Space { kind } ->
-            case kind of
-                GoalField ->
-                    True
+isGoalField gameElement =
+    case gameElement of
+        FreeSpace GoalField ->
+            True
 
-                _ ->
-                    False
+        OccupiedSpace GoalField _ ->
+            True
 
         _ ->
             False
 
 
 hasCrate : GameElement -> Bool
-hasCrate obj =
-    case obj of
-        Space { occupant } ->
-            case occupant of
-                Just Crate ->
-                    True
-
-                _ ->
-                    False
+hasCrate gameElement =
+    case gameElement of
+        OccupiedSpace _ Crate ->
+            True
 
         _ ->
             False
 
 
-occupyWith : MovingObject -> Occupyable r -> GameElement
-occupyWith obj r =
-    Space { kind = r.kind, occupant = Just obj }
+occupyWith : MovingObject -> GameElement -> GameElement
+occupyWith movingObject gameElement =
+    case gameElement of
+        FreeSpace spaceType ->
+            OccupiedSpace spaceType movingObject
+
+        _ ->
+            gameElement
 
 
-deoccupy : Occupyable r -> GameElement
-deoccupy r =
-    Space { kind = r.kind, occupant = Nothing }
+deoccupy : GameElement -> GameElement
+deoccupy gameElement =
+    case gameElement of
+        OccupiedSpace spaceType _ ->
+            FreeSpace spaceType
+
+        _ ->
+            gameElement

@@ -1,21 +1,24 @@
-module Data.Level
-    exposing
-        ( Grid
-        , Level
-        , fromTemplate
-        , getGrid
-        , hasWon
-        , move
-        , moves
-        , number
-        , pushes
-        , reset
-        , undo
-        )
+module Data.Level exposing
+    ( Grid
+    , Level
+    , fromTemplate
+    , getGrid
+    , hasWon
+    , move
+    , moves
+    , number
+    , pushes
+    , reset
+    , undo
+    )
 
 import Array exposing (Array)
+import Data.GameElement as Element
+    exposing
+        ( GameElement(..)
+        , MovingObject(..)
+        )
 import Data.LevelTemplate exposing (LevelTemplate)
-import Data.GameElement as Element exposing (GameElement(..), Occupyable, MovingObject(..))
 import Data.Movement exposing (Direction(..), MoveError(..))
 
 
@@ -32,7 +35,11 @@ type alias Location =
 
 
 type alias LevelState =
-    { grid : Grid, playerLocation : Location, moves : Int, pushes : Int }
+    { grid : Grid
+    , playerLocation : Location
+    , moves : Int
+    , pushes : Int
+    }
 
 
 type alias Level =
@@ -58,9 +65,9 @@ fromTemplate tmpl =
                 |> Array.map Element.fromString
 
         levelState =
-            { grid = (fromStrings tmpl.grid), playerLocation = tmpl.playerLocation, moves = 0, pushes = 0 }
+            { grid = fromStrings tmpl.grid, playerLocation = tmpl.playerLocation, moves = 0, pushes = 0 }
     in
-        { current = levelState, initial = levelState, previous = Nothing, number = tmpl.levelNumber }
+    { current = levelState, initial = levelState, previous = Nothing, number = tmpl.levelNumber }
 
 
 hasWon : Level -> Bool
@@ -76,101 +83,85 @@ getGrid { current } =
     current.grid
 
 
-{-| This function needs refactoring... It's simply not nice enough
--}
 move : Direction -> Level -> Result MoveError Level
 move direction level =
     let
-        lvl : LevelState
-        lvl =
+        currentLevelState =
             level.current
 
-        grid : Grid
         grid =
-            lvl.grid
+            currentLevelState.grid
 
-        oneSpaceAway : Location
         oneSpaceAway =
-            getAdjacentLocation lvl.playerLocation direction
+            getAdjacentLocation currentLevelState.playerLocation direction
 
-        twoSpacesAway : Location
         twoSpacesAway =
             getAdjacentLocation oneSpaceAway direction
-
-        movePlayer : Occupyable r -> Occupyable r -> Grid -> Grid
-        movePlayer o1 o2 grid_ =
-            grid_
-                |> Array.set lvl.playerLocation (Element.deoccupy o1)
-                |> Array.set oneSpaceAway (Element.occupyWith Player o2)
-
-        pushCrate : Occupyable r -> Occupyable r -> Occupyable r -> Grid -> Grid
-        pushCrate o1 o2 o3 grid_ =
-            movePlayer o1 o2 grid_
-                |> Array.set twoSpacesAway (Element.occupyWith Crate o3)
     in
-        case
-            ( elementAt lvl.playerLocation grid
-            , elementAt oneSpaceAway grid
-            , elementAt twoSpacesAway grid
-            )
-        of
-            -- There is a block in the way
-            ( _, Block, _ ) ->
-                Result.Err BlockedByBlock
+    case
+        ( elementAt currentLevelState.playerLocation grid
+        , elementAt oneSpaceAway grid
+        , elementAt twoSpacesAway grid
+        )
+    of
+        -- There is a block in the way
+        ( _, Block, _ ) ->
+            Result.Err BlockedByBlock
 
-            -- There's a block two spaces away
-            ( Space s1, Space s2, Block ) ->
-                case s2.occupant of
-                    Just _ ->
-                        Result.Err BlockedByCrate
+        -- There is a crate followed by a block
+        ( _, OccupiedSpace _ Crate, Block ) ->
+            Result.Err BlockedByCrate
 
-                    Nothing ->
-                        let
-                            newCurrent =
-                                { lvl
-                                    | grid = (movePlayer s1 s2 grid)
-                                    , playerLocation = oneSpaceAway
-                                    , moves = lvl.moves + 1
-                                }
-                        in
-                            Result.Ok
-                                { level | current = newCurrent, previous = Just lvl }
+        -- There are two adjacent crates
+        ( _, OccupiedSpace _ Crate, OccupiedSpace _ Crate ) ->
+            Result.Err BlockedByCrate
 
-            -- There are two adjacent spaces, potentially occupied by crates
-            ( Space s1, Space s2, Space s3 ) ->
-                case ( s2.occupant, s3.occupant ) of
-                    ( Nothing, _ ) ->
-                        let
-                            newCurrent =
-                                { lvl
-                                    | grid = (movePlayer s1 s2 grid)
-                                    , playerLocation = oneSpaceAway
-                                    , moves = lvl.moves + 1
-                                }
-                        in
-                            Result.Ok
-                                { level | current = newCurrent, previous = Just lvl }
+        -- There is a free space adjacent to the player
+        ( OccupiedSpace playerSpaceType _, FreeSpace adjacantSpaceType, _ ) ->
+            let
+                newGrid =
+                    grid
+                        |> Array.set currentLevelState.playerLocation (FreeSpace playerSpaceType)
+                        |> Array.set oneSpaceAway (OccupiedSpace adjacantSpaceType Player)
 
-                    ( Just Crate, Nothing ) ->
-                        let
-                            newCurrent =
-                                { grid = (pushCrate s1 s2 s3 grid)
-                                , playerLocation = oneSpaceAway
-                                , moves = lvl.moves + 1
-                                , pushes = lvl.pushes + 1
-                                }
-                        in
-                            Result.Ok
-                                { level | current = newCurrent, previous = Just lvl }
+                newLevelState =
+                    { currentLevelState
+                        | grid = newGrid
+                        , playerLocation = oneSpaceAway
+                        , moves = currentLevelState.moves + 1
+                    }
+            in
+            Result.Ok
+                { level
+                    | current = newLevelState
+                    , previous = Just currentLevelState
+                }
 
-                    ( Just Crate, Just _ ) ->
-                        Result.Err BlockedByCrate
+        -- There adjacent space is occupied by a crate, and adjacent to that there is a free space
+        ( OccupiedSpace playerSpaceType _, OccupiedSpace adjacentSpaceType Crate, FreeSpace farAwaySpaceType ) ->
+            let
+                newGrid =
+                    grid
+                        |> Array.set currentLevelState.playerLocation (FreeSpace playerSpaceType)
+                        |> Array.set oneSpaceAway (OccupiedSpace adjacentSpaceType Player)
+                        |> Array.set twoSpacesAway (OccupiedSpace farAwaySpaceType Crate)
 
-                    _ ->
-                        Result.Err Impossible
+                newLevelState =
+                    { currentLevelState
+                        | grid = newGrid
+                        , playerLocation = oneSpaceAway
+                        , moves = currentLevelState.moves + 1
+                        , pushes = currentLevelState.pushes + 1
+                    }
+            in
+            Result.Ok
+                { level
+                    | current = newLevelState
+                    , previous = Just currentLevelState
+                }
 
-            _ ->
-                Result.Err Impossible
+        _ ->
+            Result.Err Impossible
 
 
 undo : Level -> Level

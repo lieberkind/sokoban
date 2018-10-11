@@ -1,22 +1,23 @@
-module Data.Game
-    exposing
-        ( Game
-        , advanceLevel
-        , currentLevel
-        , fromProgress
-        , isGameOver
-        , isPlaying
-        , levelWon
-        , move
-        , new
-        , toProgress
-        , undoLevel
-        , undoMove
-        )
+module Data.Game exposing
+    ( Game
+    , advanceLevel
+    , currentLevel
+    , fromProgress
+    , getTotalMoves
+    , getTotalPushes
+    , isGameOver
+    , isPlaying
+    , levelWon
+    , move
+    , new
+    , toProgress
+    , undoLevel
+    , undoMove
+    )
 
 import Data.Level as Level exposing (..)
-import Data.Movement exposing (Direction, MoveError(..))
 import Data.LevelTemplate as LevelTemplate exposing (LevelTemplate)
+import Data.Movement exposing (Direction, MoveError(..))
 import Data.Progress exposing (Progress)
 import List.Nonempty as NE exposing (Nonempty(..))
 
@@ -27,21 +28,23 @@ type GameState
     | GameOver
 
 
-type alias Game =
-    { state : GameState
-    , levels : Nonempty Level
-    , totalMoves : Int
-    , totalPushes : Int
-    }
+type Game
+    = Game
+        { state : GameState
+        , levels : Nonempty Level
+        , totalMoves : Int
+        , totalPushes : Int
+        }
 
 
 new : Game
 new =
-    { state = Playing
-    , levels = NE.map Level.fromTemplate LevelTemplate.allLevels
-    , totalMoves = 0
-    , totalPushes = 0
-    }
+    Game
+        { state = Playing
+        , levels = NE.map Level.fromTemplate LevelTemplate.allLevels
+        , totalMoves = 0
+        , totalPushes = 0
+        }
 
 
 fromProgress : Progress -> Game
@@ -55,6 +58,7 @@ fromProgress { levelNumber, totalMoves, totalPushes } =
                 |> Maybe.withDefault LevelTemplate.allLevels
                 |> NE.map Level.fromTemplate
     in
+    Game
         { state = Playing
         , levels = levelsToPlay
         , totalMoves = totalMoves
@@ -63,8 +67,8 @@ fromProgress { levelNumber, totalMoves, totalPushes } =
 
 
 move : Direction -> Game -> Result MoveError Game
-move dir game =
-    case game.state of
+move dir ((Game { state }) as game) =
+    case state of
         Playing ->
             Level.move dir (safeCurrentLevel game) |> Result.map (updateGame game)
 
@@ -73,8 +77,8 @@ move dir game =
 
 
 undoMove : Game -> Game
-undoMove game =
-    case game.state of
+undoMove ((Game { state }) as game) =
+    case state of
         Playing ->
             updateGame game (Level.undo (safeCurrentLevel game))
 
@@ -83,8 +87,8 @@ undoMove game =
 
 
 undoLevel : Game -> Game
-undoLevel game =
-    case game.state of
+undoLevel ((Game { state }) as game) =
+    case state of
         GameOver ->
             game
 
@@ -96,37 +100,39 @@ currentLevel : Game -> Maybe Level
 currentLevel game =
     if isGameOver game then
         Nothing
+
     else
         Just (safeCurrentLevel game)
 
 
 advanceLevel : Game -> Game
-advanceLevel game =
-    case game.state of
+advanceLevel ((Game { state, levels, totalMoves, totalPushes }) as game) =
+    case state of
         LevelWon ->
-            case (NE.tail game.levels) of
+            case NE.tail levels of
                 [] ->
-                    { game
-                        | state = GameOver
-                        , totalMoves = game.totalMoves + (Level.moves (safeCurrentLevel game))
-                        , totalPushes = game.totalPushes + (Level.pushes (safeCurrentLevel game))
-                    }
+                    Game
+                        { levels = levels
+                        , state = GameOver
+                        , totalMoves = totalMoves + Level.moves (safeCurrentLevel game)
+                        , totalPushes = totalPushes + Level.pushes (safeCurrentLevel game)
+                        }
 
                 next :: rest ->
-                    { game
-                        | state = Playing
+                    Game
+                        { state = Playing
                         , levels = Nonempty next rest
-                        , totalMoves = game.totalMoves + (Level.moves (safeCurrentLevel game))
-                        , totalPushes = game.totalPushes + (Level.pushes (safeCurrentLevel game))
-                    }
+                        , totalMoves = totalMoves + Level.moves (safeCurrentLevel game)
+                        , totalPushes = totalPushes + Level.pushes (safeCurrentLevel game)
+                        }
 
         _ ->
             game
 
 
 levelWon : Game -> Bool
-levelWon { state } =
-    case state of
+levelWon (Game game) =
+    case game.state of
         LevelWon ->
             True
 
@@ -135,33 +141,45 @@ levelWon { state } =
 
 
 isPlaying : Game -> Bool
-isPlaying game =
+isPlaying (Game game) =
     if game.state == Playing then
         True
+
     else
         False
 
 
 isGameOver : Game -> Bool
-isGameOver game =
+isGameOver (Game game) =
     if game.state == GameOver then
         True
+
     else
         False
 
 
 toProgress : Game -> Maybe Progress
-toProgress game =
-    case game.state of
+toProgress ((Game { state, totalMoves, totalPushes }) as game) =
+    case state of
         GameOver ->
             Nothing
 
         _ ->
             Just
                 { levelNumber = Level.number (safeCurrentLevel game)
-                , totalMoves = game.totalMoves
-                , totalPushes = game.totalPushes
+                , totalMoves = totalMoves
+                , totalPushes = totalPushes
                 }
+
+
+getTotalMoves : Game -> Int
+getTotalMoves (Game { totalMoves }) =
+    totalMoves
+
+
+getTotalPushes : Game -> Int
+getTotalPushes (Game { totalPushes }) =
+    totalPushes
 
 
 
@@ -169,20 +187,21 @@ toProgress game =
 
 
 updateGame : Game -> Level -> Game
-updateGame game level =
+updateGame (Game game) level =
     let
         newGameState =
             if Level.hasWon level then
                 LevelWon
+
             else
                 Playing
 
         newLevels =
-             Nonempty level (NE.tail game.levels)
+            Nonempty level (NE.tail game.levels)
     in
-        { game | levels = newLevels, state = newGameState }
+    Game { game | levels = newLevels, state = newGameState }
 
 
 safeCurrentLevel : Game -> Level
-safeCurrentLevel { levels } =
+safeCurrentLevel (Game { levels }) =
     NE.head levels

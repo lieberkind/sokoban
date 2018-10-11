@@ -198,7 +198,11 @@ view { game, message, isStartingOver } =
                         )
                         (Views.Popups.confirm isStartingOver "Are you sure you want to start over? All progress will be lost.")
                     , Views.Level.renderLevel (Level.fromTemplate gameOver)
-                    , Views.GameInfo.renderGameOverInfo { moves = game.totalMoves, pushes = game.totalPushes, message = Just "Well done!" }
+                    , Views.GameInfo.renderGameOverInfo
+                        { moves = Game.getTotalMoves game
+                        , pushes = Game.getTotalPushes game
+                        , message = Just "Well done!"
+                        }
                     ]
                 ]
 
