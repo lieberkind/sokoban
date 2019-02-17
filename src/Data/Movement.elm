@@ -1,4 +1,4 @@
-module Data.Movement exposing (..)
+module Data.Movement exposing (Direction(..), MoveError(..), errorToString)
 
 
 type Direction
@@ -13,3 +13,19 @@ type MoveError
     | BlockedByBlock
     | OutOfBounds
     | Impossible
+
+
+errorToString : MoveError -> String
+errorToString err =
+    case err of
+        Impossible ->
+            "This should not happen..."
+
+        OutOfBounds ->
+            "How did you get here???"
+
+        BlockedByCrate ->
+            "{ooph...grumble}"
+
+        BlockedByBlock ->
+            "Ouch!"

@@ -10,16 +10,15 @@ module Data.Level exposing
     , pushes
     , reset
     , undo
+    , view
     )
 
 import Array exposing (Array)
-import Data.GameElement as Element
-    exposing
-        ( GameElement(..)
-        , MovingObject(..)
-        )
+import Data.GameElement as GameElement exposing (GameElement(..), MovingObject(..))
 import Data.LevelTemplate exposing (LevelTemplate)
 import Data.Movement exposing (Direction(..), MoveError(..))
+import Html exposing (Html)
+import Html.Attributes as Attrs
 
 
 type alias Grid =
@@ -62,7 +61,7 @@ fromTemplate tmpl =
                 |> List.map (String.split "")
                 |> List.concat
                 |> Array.fromList
-                |> Array.map Element.fromString
+                |> Array.map GameElement.fromString
 
         levelState =
             { grid = fromStrings tmpl.grid, playerLocation = tmpl.playerLocation, moves = 0, pushes = 0 }
@@ -74,8 +73,8 @@ hasWon : Level -> Bool
 hasWon { current } =
     current.grid
         |> Array.toList
-        |> List.filter Element.isGoalField
-        |> List.all Element.hasCrate
+        |> List.filter GameElement.isGoalField
+        |> List.all GameElement.hasCrate
 
 
 getGrid : Level -> Grid
@@ -192,6 +191,16 @@ pushes lvl =
 number : Level -> Int
 number lvl =
     lvl.number
+
+
+view : Level -> Html msg
+view level =
+    Html.div
+        [ Attrs.class "grid" ]
+        (level.current.grid
+            |> Array.toList
+            |> List.map GameElement.view
+        )
 
 
 

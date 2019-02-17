@@ -1,4 +1,17 @@
-module Data.GameElement exposing (GameElement(..), MovingObject(..), SpaceType(..), deoccupy, fromString, hasCrate, isGoalField, occupyWith)
+module Data.GameElement exposing
+    ( GameElement(..)
+    , MovingObject(..)
+    , SpaceType(..)
+    , deoccupy
+    , fromString
+    , hasCrate
+    , isGoalField
+    , occupyWith
+    , view
+    )
+
+import Html exposing (Html)
+import Html.Attributes as Attrs
 
 
 type SpaceType
@@ -93,3 +106,36 @@ deoccupy gameElement =
 
         _ ->
             gameElement
+
+
+view : GameElement -> Html msg
+view obj =
+    case obj of
+        Block ->
+            Html.div [ Attrs.class "game-element block" ] []
+
+        FreeSpace Path ->
+            Html.div [ Attrs.class "game-element path" ] []
+
+        FreeSpace GoalField ->
+            Html.div [ Attrs.class "game-element goal-field" ] []
+
+        OccupiedSpace Path Crate ->
+            Html.div [ Attrs.class "game-element path" ] [ crate ]
+
+        OccupiedSpace Path Player ->
+            Html.div [ Attrs.class "game-element path" ] [ player ]
+
+        OccupiedSpace GoalField Crate ->
+            Html.div [ Attrs.class "game-element goal-field" ] [ crate ]
+
+        OccupiedSpace GoalField Player ->
+            Html.div [ Attrs.class "game-element goal-field" ] [ player ]
+
+
+crate =
+    Html.div [ Attrs.class "game-element crate" ] []
+
+
+player =
+    Html.div [ Attrs.class "soko", Attrs.id "soko" ] []
