@@ -37,25 +37,32 @@ import List.Nonempty as NE exposing (Nonempty(..))
 --------------------------------------------------------------------------------
 
 
-type alias Model =
-    { game : Game
-    , message : Message
-    }
+type Model
+    = Playing GameState Message
+    | LevelWon Level GameState
+    | GameOver { moves : Int, pushes : Int }
 
 
-type Game
-    = Game
-        { state : GameState
-        , levels : Nonempty Level
+
+-- type alias Model2 =
+--     { game : Game
+--     , message : Message
+--     }
+
+
+type GameState
+    = GameState
+        { levels : Nonempty Level
         , totalMoves : Int
         , totalPushes : Int
         }
 
 
-type GameState
-    = Playing
-    | LevelWon
-    | GameOver
+
+-- type GameState
+--     = Playing
+--     | LevelWon
+--     | GameOver
 
 
 type Message
@@ -71,15 +78,18 @@ type Message
 
 new : Model
 new =
-    { message = Message "Playing level 0..."
-    , game =
-        Game
-            { state = Playing
-            , levels = NE.map Level.fromTemplate LevelTemplate.allLevels
-            , totalMoves = 0
-            , totalPushes = 0
-            }
-    }
+    let
+        gameState =
+            GameState
+                { levels = NE.map Level.fromTemplate LevelTemplate.allLevels
+                , totalMoves = 0
+                , totalPushes = 0
+                }
+
+        message =
+            Message "Playing level 0..."
+    in
+    Playing gameState message
 
 
 fromProgress : Progress -> Model
@@ -93,15 +103,17 @@ fromProgress { levelNumber, totalMoves, totalPushes } =
                 |> Maybe.withDefault LevelTemplate.allLevels
                 |> NE.map Level.fromTemplate
 
-        game =
-            Game
-                { state = Playing
-                , levels = levelsToPlay
-                , totalMoves = totalMoves
-                , totalPushes = totalPushes
+        gameState =
+            GameState
+                { levels = NE.map Level.fromTemplate LevelTemplate.allLevels
+                , totalMoves = 0
+                , totalPushes = 0
                 }
+
+        message =
+            Message "Playing level " ++ NE.head levelsToPlay |> Level.number ++ "..."
     in
-    { game = game, message = NoMessage }
+    Playing gameState message
 
 
 
