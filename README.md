@@ -14,6 +14,18 @@ Trying to make the look and feel as close to the game game I played as a child:
 
 To play, go to [http://elm-sokoban.lieberkind.io](http://elm-sokoban.lieberkind.io).
 
+## Development
+
+Requires Node 24 (see `.nvmrc`). Elm itself is installed as a dev dependency.
+
+```sh
+nvm use
+npm install
+npm run dev      # dev server at http://localhost:5173
+npm run build    # production build into dist/
+npm run preview  # serve the production build
+```
+
 ## Credits
 
 This game is a direct port of Allan B. Liss' Sokoban for Windows release 2.2.5 from 1992. I don't take credit for invention of levels, gameplay or any design.

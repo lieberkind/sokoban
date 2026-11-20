@@ -1,11 +1,6 @@
 import "./main.css";
 import { Elm } from "./Main.elm";
-import registerServiceWorker from "./registerServiceWorker";
 import * as Progress from "./services/Progress";
-
-// Elm.Main.init({
-//   node: document.getElementById('root')
-// });
 
 Progress.get().then(progress => {
   const app = Elm.Main.init({
@@ -53,4 +48,3 @@ Progress.get().then(progress => {
   requestAnimationFrame(paintNextSoko);
 });
 
-registerServiceWorker();
