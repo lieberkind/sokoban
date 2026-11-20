@@ -12,7 +12,7 @@ Trying to make the look and feel as close to the game game I played as a child:
 
 ## Try it out
 
-To play, go to [http://elm-sokoban.lieberkind.io](http://elm-sokoban.lieberkind.io).
+To play, go to [sokoban.purple.horse](https://sokoban.purple.horse).
 
 ## Development
 
