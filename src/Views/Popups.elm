@@ -5,13 +5,6 @@ import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 
 
-type alias LevelStats =
-    { levelNumber : Int
-    , moves : Int
-    , pushes : Int
-    }
-
-
 endOfLevel : Bool -> String -> Html ()
 endOfLevel visible str =
     div

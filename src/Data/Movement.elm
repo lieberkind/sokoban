@@ -11,5 +11,4 @@ type Direction
 type MoveError
     = BlockedByCrate
     | BlockedByBlock
-    | OutOfBounds
     | Impossible

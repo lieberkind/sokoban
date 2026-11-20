@@ -8,10 +8,9 @@ import Data.LevelTemplate exposing (..)
 import Data.Movement as Movement exposing (Direction(..), MoveError(..))
 import Data.Progress exposing (Progress)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, classList, href, style)
+import Html.Attributes exposing (style)
 import Json.Decode as Decode
 import Msg exposing (..)
-import Set exposing (Set, insert, remove)
 import Views.Controls
 import Views.GameInfo
 import Views.Header
@@ -47,8 +46,7 @@ type alias Flags =
 
 
 type alias Model =
-    { keysDown : Set Int
-    , game : Game
+    { game : Game
     , message : Maybe String
     , isStartingOver : Bool
     }
@@ -67,8 +65,7 @@ initialModel flags =
                 |> Maybe.map Level.number
                 |> Maybe.map (\levelNumber -> "Playing level " ++ String.fromInt levelNumber ++ "...")
     in
-    { keysDown = Set.empty
-    , game = game
+    { game = game
     , message = message
     , isStartingOver = False
     }
@@ -90,9 +87,6 @@ getErrorMessage err =
     case err of
         Impossible ->
             "This should not happen..."
-
-        OutOfBounds ->
-            "How did you get here???"
 
         BlockedByCrate ->
             "{ooph...grumble}"

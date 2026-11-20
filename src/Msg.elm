@@ -11,5 +11,4 @@ type Msg
     | ConfirmStartOver
     | CancelStartOver
     | AdvanceLevel
-    | UpdateSoko
     | NoOp

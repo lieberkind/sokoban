@@ -1,4 +1,4 @@
-module Data.GameElement exposing (GameElement(..), MovingObject(..), SpaceType(..), deoccupy, fromString, hasCrate, isGoalField, occupyWith)
+module Data.GameElement exposing (GameElement(..), MovingObject(..), SpaceType(..), fromString, hasCrate, isGoalField)
 
 
 type SpaceType
@@ -74,22 +74,3 @@ hasCrate gameElement =
         _ ->
             False
 
-
-occupyWith : MovingObject -> GameElement -> GameElement
-occupyWith movingObject gameElement =
-    case gameElement of
-        FreeSpace spaceType ->
-            OccupiedSpace spaceType movingObject
-
-        _ ->
-            gameElement
-
-
-deoccupy : GameElement -> GameElement
-deoccupy gameElement =
-    case gameElement of
-        OccupiedSpace spaceType _ ->
-            FreeSpace spaceType
-
-        _ ->
-            gameElement
